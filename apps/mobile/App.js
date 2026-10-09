@@ -9,7 +9,8 @@ import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { StatusBar } from "expo-status-bar";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
-import { cargarToken, entrar, salir, listar, parchear, crear, registrarPush, tokenActual } from "./api";
+import { cargarToken, haySesion, entrar, salir, listar, parchear, crear, registrarPush, tokenActual } from "./api";
+import { capacidad, preferencia, guardarPreferencia, desbloquear } from "./sesion";
 import { registrarParaPush } from "./notificaciones";
 import { metricas, paleta, sombra } from "./diseno";
 import Chat from "./Chat";
@@ -60,6 +61,9 @@ function Pantalla() {
 
   const [arrancando, setArrancando] = useState(true);
   const [dentro, setDentro] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false);
+  const [bio, setBio] = useState({ disponible: false, nombre: "Face ID" });
+  const [bioActivo, setBioActivo] = useState(false);
   const [borradores, setBorradores] = useState([]);
   const [filtro, setFiltro] = useState("pendiente");
   const [vista, setVista] = useState("cola");
@@ -81,13 +85,39 @@ function Pantalla() {
     }
   }, []);
 
+  const abrirConBiometria = useCallback(async (nombre) => {
+    const { ok, motivo } = await desbloquear(nombre);
+    if (!ok) {
+      if (motivo) setError(motivo);
+      return false;
+    }
+    setBloqueado(false);
+    setError("");
+    const t = await cargarToken();
+    if (t) await cargar();
+    return true;
+  }, [cargar]);
+
   useEffect(() => {
     (async () => {
+      const cap = await capacidad();
+      const quiere = await preferencia();
+      setBio(cap);
+      setBioActivo(quiere && cap.disponible);
+
+      const guardada = await haySesion();
+      if (guardada && quiere && cap.disponible) {
+        // Hay sesión, pero no se abre hasta que lo autorice la cara.
+        setBloqueado(true);
+        setArrancando(false);
+        await abrirConBiometria(cap.nombre);
+        return;
+      }
       const t = await cargarToken();
       if (t) await cargar();
       setArrancando(false);
     })();
-  }, [cargar]);
+  }, [cargar, abrirConBiometria]);
 
   // El permiso se pide ya dentro, no en la pantalla de contraseña: pedirlo
   // antes de que se vea para qué sirve se lleva un "no" casi seguro.
@@ -144,7 +174,50 @@ function Pantalla() {
     );
   }
 
-  if (!dentro) return <Puerta {...{ c, s, m, oscuro }} alEntrar={cargar} />;
+  if (bloqueado && !dentro) {
+    return (
+      <View style={s.pantalla}>
+        <StatusBar style={oscuro ? "light" : "dark"} />
+        <View style={s.puerta}>
+          <Text style={s.puertaTitulo}>Mesa de Redacción</Text>
+          <Text style={s.vacioTexto}>
+            Tu sesión está guardada. Desbloquéala con {bio.nombre}.
+          </Text>
+          {error ? <Text style={s.error}>{error}</Text> : null}
+          <Pressable
+            onPress={() => abrirConBiometria(bio.nombre)}
+            style={[s.boton, s.botonPrimario, s.botonAncho]}
+            accessibilityRole="button"
+          >
+            <Text style={s.botonPrimarioTexto}>Desbloquear con {bio.nombre}</Text>
+          </Pressable>
+          <Pressable
+            onPress={async () => { await salir(); setBloqueado(false); }}
+            style={[s.boton, s.botonAncho]} accessibilityRole="button"
+          >
+            <Text style={s.botonTexto}>Entrar con la contraseña</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  if (!dentro) {
+    return (
+      <Puerta
+        {...{ c, s, m, oscuro, bio }}
+        alEntrar={async () => {
+          await cargar();
+          // Se ofrece justo después del primer acierto, que es cuando se
+          // entiende para qué sirve.
+          if (bio.disponible && !(await preferencia())) {
+            const { ok } = await desbloquear(bio.nombre);
+            if (ok) { await guardarPreferencia(true); setBioActivo(true); }
+          }
+        }}
+      />
+    );
+  }
 
   const visibles = borradores.filter((d) => (d.estado || "pendiente") === filtro);
   const cuenta = (f) => borradores.filter((d) => (d.estado || "pendiente") === f).length;
@@ -158,8 +231,33 @@ function Pantalla() {
           <Text style={s.titulo} numberOfLines={1} adjustsFontSizeToFit>
             Mesa de Redacción
           </Text>
+          {bio.disponible && (
+            <Pressable
+              onPress={async () => {
+                toque();
+                const nuevo = !bioActivo;
+                if (nuevo) {
+                  const { ok } = await desbloquear(bio.nombre);
+                  if (!ok) return;
+                }
+                await guardarPreferencia(nuevo);
+                setBioActivo(nuevo);
+              }}
+              style={s.salir} hitSlop={10}
+              accessibilityLabel={`${bioActivo ? "Desactivar" : "Activar"} ${bio.nombre}`}
+            >
+              <Text style={[s.salirTexto, bioActivo && { color: c.acento, fontWeight: "700" }]}>
+                {bio.nombre}
+              </Text>
+            </Pressable>
+          )}
           <Pressable
-            onPress={async () => { toque(); await salir(); setDentro(false); }}
+            onPress={async () => {
+              toque();
+              await salir();
+              setDentro(false);
+              setBloqueado(false);
+            }}
             style={s.salir} hitSlop={10} accessibilityLabel="Cerrar sesión"
           >
             <Text style={s.salirTexto}>Salir</Text>
@@ -262,7 +360,7 @@ function Pantalla() {
   );
 }
 
-function Puerta({ c, s, m, oscuro, alEntrar }) {
+function Puerta({ c, s, m, oscuro, bio, alEntrar }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -530,7 +628,7 @@ function estilos(c, m, insets) {
     quien: { flexDirection: "row", alignItems: "center", gap: m.e.s, marginBottom: m.e.m },
     avatar: {
       width: m.esc(40), height: m.esc(40), borderRadius: m.esc(20),
-      backgroundColor: "#1f3a5c", alignItems: "center", justifyContent: "center",
+      backgroundColor: c.avatar, alignItems: "center", justifyContent: "center",
     },
     avatarTexto: { color: "#fff", fontWeight: "800", fontSize: m.t.menor },
     quienNombre: { fontSize: m.t.menor, fontWeight: "700", color: c.tinta },

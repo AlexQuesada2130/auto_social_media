@@ -3,7 +3,7 @@
 // La URL sale de app.json -> extra.apiUrl. En desarrollo apunta a la IP del
 // Mac en la red local; en producción, al dominio de Vercel.
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 
 const BASE =
@@ -12,11 +12,31 @@ const BASE =
 
 const LLAVE = "mesa.token";
 
+// El token vive en el llavero de iOS, no en almacenamiento plano. Si alguien
+// se lleva el teléfono desbloqueado da igual, pero una copia de seguridad o un
+// volcado del disco ya no lo entregan.
+const OPCIONES = {
+  keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+};
+
 let token = null;
 
 export async function cargarToken() {
-  token = await AsyncStorage.getItem(LLAVE);
+  try {
+    token = await SecureStore.getItemAsync(LLAVE, OPCIONES);
+  } catch {
+    token = null;
+  }
   return token;
+}
+
+/** Hay sesión guardada, sin leerla todavía. Para decidir si pedir Face ID. */
+export async function haySesion() {
+  try {
+    return Boolean(await SecureStore.getItemAsync(LLAVE, OPCIONES));
+  } catch {
+    return false;
+  }
 }
 
 export async function entrar(password) {
@@ -28,13 +48,13 @@ export async function entrar(password) {
   if (!res.ok) throw new Error("Contraseña incorrecta");
   const { token: nuevo } = await res.json();
   token = nuevo;
-  await AsyncStorage.setItem(LLAVE, nuevo);
+  await SecureStore.setItemAsync(LLAVE, nuevo, OPCIONES);
   return nuevo;
 }
 
 export async function salir() {
   token = null;
-  await AsyncStorage.removeItem(LLAVE);
+  await SecureStore.deleteItemAsync(LLAVE, OPCIONES).catch(() => {});
 }
 
 async function pedir(ruta, opciones = {}) {

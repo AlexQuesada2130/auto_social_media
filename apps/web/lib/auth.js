@@ -25,11 +25,50 @@ function firmar(datos) {
 export function passwordCorrecta(intento) {
   const real = process.env.MESA_PASSWORD;
   if (!real) throw new Error("Falta MESA_PASSWORD en el entorno");
-  const a = Buffer.from(String(intento || ""));
-  const b = Buffer.from(real);
-  // Longitudes distintas delatarían la contraseña por el tiempo de respuesta.
-  if (a.length !== b.length) return false;
+  // Se compara el resumen, no el texto: así ambos lados miden siempre 32 bytes
+  // y ni el tiempo de respuesta ni un return temprano delatan la longitud.
+  const a = crypto.createHash("sha256").update(String(intento || "")).digest();
+  const b = crypto.createHash("sha256").update(real).digest();
   return crypto.timingSafeEqual(a, b);
+}
+
+// --- freno a la fuerza bruta -----------------------------------------------
+//
+// En memoria y por instancia. En Vercel eso significa que varias instancias
+// llevan cuentas separadas, así que no es una barrera dura: es un freno que
+// convierte un ataque de minutos en uno de días. La barrera de verdad es una
+// contraseña larga.
+
+const INTENTOS = new Map();
+const TOPE = 5;
+const CASTIGO = 15 * 60 * 1000;
+const VENTANA = 10 * 60 * 1000;
+
+export function bloqueado(clave) {
+  const r = INTENTOS.get(clave);
+  if (!r) return 0;
+  if (r.hasta && r.hasta > Date.now()) return Math.ceil((r.hasta - Date.now()) / 1000);
+  return 0;
+}
+
+export function apuntarFallo(clave) {
+  const ahora = Date.now();
+  const r = INTENTOS.get(clave) || { n: 0, desde: ahora };
+  // Los fallos viejos no cuentan: un error hace una hora no es un ataque.
+  if (ahora - r.desde > VENTANA) { r.n = 0; r.desde = ahora; }
+  r.n += 1;
+  if (r.n >= TOPE) { r.hasta = ahora + CASTIGO; r.n = 0; r.desde = ahora; }
+  INTENTOS.set(clave, r);
+  // Sin esto el mapa crecería sin fin con cada IP que pruebe suerte.
+  if (INTENTOS.size > 1000) {
+    for (const [k, v] of INTENTOS) {
+      if (!v.hasta && ahora - v.desde > VENTANA) INTENTOS.delete(k);
+    }
+  }
+}
+
+export function olvidarFallos(clave) {
+  INTENTOS.delete(clave);
 }
 
 export function emitirToken() {

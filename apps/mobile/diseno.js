@@ -39,24 +39,32 @@ export function metricas(ancho) {
 }
 
 export function paleta(oscuro) {
+  // El acento es violeta. El verde de "aprobado" y el gris de "descartado" se
+  // quedan aparte a propósito: el color semántico informa de un estado y no
+  // debe confundirse con el color de marca, o deja de leerse de un vistazo.
+  //
+  // Los neutros llevan una ligera inclinación violeta en vez de ser grises
+  // puros, para que el conjunto se lea como elegido y no como heredado.
   return oscuro
     ? {
-        papel: "#15140f", tarjeta: "#1e1d18", elevado: "#262520",
-        tinta: "#ece8e0", suave: "#a39d93", tenue: "#7d766c",
-        linea: "#33302a", lineaSuave: "#282621",
-        acento: "#e2795a", acentoBg: "#3a2119", acentoTexto: "#15140f",
+        papel: "#141019", tarjeta: "#1e1826", elevado: "#272034",
+        tinta: "#ece7f2", suave: "#a39bb0", tenue: "#7d7389",
+        linea: "#332a40", lineaSuave: "#282133",
+        acento: "#b794f6", acentoBg: "#2f2347", acentoTexto: "#141019",
         ok: "#7bc09f", okBg: "#1b2f26",
-        off: "#8a8279", offBg: "#26241f",
-        campo: "#26241f", sombra: "#000000",
+        off: "#8a8294", offBg: "#262030",
+        campo: "#262030", sombra: "#000000",
+        avatar: "#4a3570",
       }
     : {
-        papel: "#f1efe9", tarjeta: "#ffffff", elevado: "#faf9f6",
-        tinta: "#1f1d1a", suave: "#6a655d", tenue: "#938d84",
-        linea: "#ddd8cf", lineaSuave: "#e8e4dc",
-        acento: "#b4472b", acentoBg: "#f7e6e0", acentoTexto: "#ffffff",
+        papel: "#f4f1f8", tarjeta: "#ffffff", elevado: "#faf8fc",
+        tinta: "#1e1a26", suave: "#635d70", tenue: "#8d8799",
+        linea: "#e0dae8", lineaSuave: "#ece7f2",
+        acento: "#6b3fa0", acentoBg: "#efe7f9", acentoTexto: "#ffffff",
         ok: "#2d6349", okBg: "#e0ece6",
-        off: "#8a8279", offBg: "#e9e6e0",
-        campo: "#faf9f6", sombra: "#1f1d1a",
+        off: "#8a8294", offBg: "#e9e5ee",
+        campo: "#faf8fc", sombra: "#1e1a26",
+        avatar: "#4a3570",
       };
 }
 

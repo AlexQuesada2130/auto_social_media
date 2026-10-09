@@ -7,11 +7,21 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.quesada.autosocialmedia"
+      "bundleIdentifier": "com.quesada.autosocialmedia",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Permite usar Face ID para desbloquear tu cola de borradores."
+      }
     },
     "plugins": [
       "expo-notifications",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Permite usar Face ID para desbloquear tu cola de borradores."
+        }
+      ]
     ],
     "extra": {
       "apiUrl": "http://192.168.1.29:3000",

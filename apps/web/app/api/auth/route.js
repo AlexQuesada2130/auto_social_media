@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { passwordCorrecta, emitirToken, COOKIE, tokenValido } from "@/lib/auth";
+import { passwordCorrecta, emitirToken, COOKIE, tokenValido,
+         bloqueado, apuntarFallo, olvidarFallos } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,18 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
+  // Detrás de Vercel la IP real llega en x-forwarded-for; el primer valor es
+  // el cliente y el resto son los proxies por los que pasó.
+  const quien = (req.headers.get("x-forwarded-for") || "local").split(",")[0].trim();
+
+  const espera = bloqueado(quien);
+  if (espera) {
+    return NextResponse.json(
+      { error: `Demasiados intentos. Prueba en ${Math.ceil(espera / 60)} minutos.` },
+      { status: 429, headers: { "Retry-After": String(espera) } },
+    );
+  }
+
   let password;
   try {
     ({ password } = await req.json());
@@ -18,11 +31,13 @@ export async function POST(req) {
   }
 
   if (!passwordCorrecta(password)) {
+    apuntarFallo(quien);
     // Un retardo fijo desdibuja los intentos automatizados sin castigar al dueño.
     await new Promise((r) => setTimeout(r, 600));
     return NextResponse.json({ error: "Contraseña incorrecta" }, { status: 401 });
   }
 
+  olvidarFallos(quien);
   const token = emitirToken();
   const res = NextResponse.json({ token });
   res.cookies.set(COOKIE, token, {
