@@ -1,38 +1,45 @@
 :root {
-  --paper: #f4f1f8;
+  --paper: #f5f3f8;
   --card: #ffffff;
-  --ink: #1e1a26;
-  --muted: #635d70;
-  --faint: #8d8799;
-  --rule: #e0dae8;
-  --rule-soft: #ece7f2;
-  --accent: #6b3fa0;
-  --accent-bg: #efe7f9;
+  --ink: #16131c;
+  --muted: #5e5870;
+  --faint: #8a8499;
+  --rule: #e2dcec;
+  --rule-soft: #eeeaf4;
+  --accent: #6d28d9;
+  --accent-bg: #f0e9fd;
+  --accent-text: #ffffff;
+  --neon: #7c3aed;
+  --glow: transparent;
   --ok: #2d6349;
-  --ok-bg: #e0ece6;
-  --off: #8a8294;
-  --off-bg: #e9e5ee;
-  --field: #faf8fc;
-  --avatar: #4a3570;
+  --ok-bg: #dff0e7;
+  --off: #857e94;
+  --off-bg: #e9e5ef;
+  --field: #faf8fd;
+  --avatar: #4c1d95;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #141019;
-    --card: #1e1826;
-    --ink: #ece7f2;
-    --muted: #a39bb0;
-    --faint: #7d7389;
-    --rule: #332a40;
-    --rule-soft: #282133;
-    --accent: #b794f6;
-    --accent-bg: #2f2347;
-    --ok: #7bc09f;
-    --ok-bg: #1b2f26;
-    --off: #8a8294;
-    --off-bg: #262030;
-    --field: #262030;
-    --avatar: #4a3570;
+    --paper: #0a0810;
+    --card: #141020;
+    --ink: #ece8f5;
+    --muted: #9d95b3;
+    --faint: #6f6885;
+    --rule: #272036;
+    --rule-soft: #1c1729;
+    --accent: #a855f7;
+    --accent-bg: #241640;
+    --accent-text: #0a0810;
+    --neon: #c084fc;
+    /* El neón solo en el borde activo, nunca de fondo: ilumina, no grita. */
+    --glow: 0 0 0 1px rgba(192, 132, 252, 0.35), 0 0 16px rgba(168, 85, 247, 0.18);
+    --ok: #4ade80;
+    --ok-bg: #0f2a1c;
+    --off: #6f6885;
+    --off-bg: #1c1729;
+    --field: #1a1528;
+    --avatar: #5b21b6;
   }
 }
 
@@ -72,13 +79,13 @@ body {
   font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer;
   padding: 9px 13px; border-bottom: 2px solid transparent; margin-bottom: -1px;
 }
-.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--neon); font-weight: 700; }
 .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 3px; }
 
 .queue { display: flex; flex-direction: column; gap: 16px; margin-top: 18px; }
 
 .card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; }
-.card.is-pendiente { border-left: 3px solid var(--accent); }
+.card.is-pendiente { border-left: 3px solid var(--accent); box-shadow: var(--glow); }
 .card.is-aprobado { border-left: 3px solid var(--ok); }
 .card.is-publicado { border-left: 3px solid var(--ok); }
 .card.is-descartado { opacity: 0.62; border-left: 3px solid var(--off); }
@@ -145,7 +152,8 @@ textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); 
 .btn:hover { border-color: var(--ink); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn[disabled] { opacity: 0.45; cursor: default; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+.btn.primary:hover { box-shadow: var(--glow); }
 .btn.ghost { color: var(--muted); border-color: transparent; }
 .btn.ghost:hover { border-color: var(--rule); color: var(--ink); }
 
@@ -192,3 +200,45 @@ textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); 
 .echar textarea { min-height: 84px; }
 .echar-pie { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .echar-pie .counter { margin-top: 0; }
+
+/* --- Panel de estado del servicio --- */
+.estado-boton { font-size: 0.72rem; padding: 4px 9px; }
+
+.estado {
+  margin-top: 16px; padding: 16px;
+  background: var(--card); border: 1px solid var(--rule);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.estado-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.estado-top h2 { margin: 0; font-size: 1rem; }
+
+.estado-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.estado-fila {
+  display: grid; grid-template-columns: auto 1fr; gap: 4px 10px;
+  align-items: center;
+}
+.punto {
+  width: 9px; height: 9px; border-radius: 50%;
+  grid-row: span 2; align-self: start; margin-top: 5px;
+}
+/* El neón se gasta aquí: es donde un punto encendido significa algo. */
+.punto.ok   { background: var(--ok);     box-shadow: 0 0 8px var(--ok); }
+.punto.aviso{ background: #c99a2e;       box-shadow: 0 0 8px #c99a2e; }
+.punto.mal  { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+.estado-nombre { font-size: 0.86rem; font-weight: 600; }
+.estado-detalle { grid-column: 2; font-size: 0.78rem; color: var(--muted); }
+
+.estado-cifras {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  padding: 12px 0; border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft);
+}
+.estado-cifras div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.estado-cifras b { font-size: 1.3rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+.estado-cifras span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); }
+
+.estado-pie { margin: 0; font-size: 0.72rem; color: var(--faint); line-height: 1.45; }
+.estado-pie code {
+  font-family: ui-monospace, monospace; font-size: 0.95em;
+  background: var(--field); padding: 1px 5px; border-radius: 3px;
+}

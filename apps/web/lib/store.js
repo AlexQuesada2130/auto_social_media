@@ -9,10 +9,12 @@ import path from "node:path";
 
 const CLAVE = "mesa:borradores";
 const CLAVE_TOKENS = "mesa:tokens";
+const CLAVE_SUBS = "mesa:subs";
 const URL_KV = process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN_KV = process.env.UPSTASH_REDIS_REST_TOKEN;
 const ARCHIVO = path.join(process.cwd(), "..", "..", "data", "local.json");
 const ARCHIVO_TOKENS = path.join(process.cwd(), "..", "..", "data", "tokens.json");
+const ARCHIVO_SUBS = path.join(process.cwd(), "..", "..", "data", "subs.json");
 
 const hayKV = Boolean(URL_KV && TOKEN_KV);
 
@@ -110,6 +112,34 @@ export async function olvidarTokens(caducados) {
   const quedan = tokens.filter((t) => !caducados.includes(t));
   if (hayKV) await kv(["SET", CLAVE_TOKENS, JSON.stringify(quedan)]);
   else await escribirArchivo(quedan, ARCHIVO_TOKENS);
+}
+
+// --- suscripciones de la PWA ----------------------------------------------
+
+export async function listarSubs() {
+  if (hayKV) {
+    const crudo = await kv(["GET", CLAVE_SUBS]);
+    return crudo ? JSON.parse(crudo) : [];
+  }
+  return leerArchivo(ARCHIVO_SUBS);
+}
+
+/** El endpoint identifica al navegador: re-suscribirse no duplica. */
+export async function registrarSub(sub) {
+  const subs = await listarSubs();
+  const otras = subs.filter((s) => s.endpoint !== sub.endpoint);
+  const nuevas = [...otras, sub];
+  if (hayKV) await kv(["SET", CLAVE_SUBS, JSON.stringify(nuevas)]);
+  else await escribirArchivo(nuevas, ARCHIVO_SUBS);
+  return nuevas;
+}
+
+export async function olvidarSubs(endpoints) {
+  if (!endpoints?.length) return;
+  const subs = await listarSubs();
+  const quedan = subs.filter((s) => !endpoints.includes(s.endpoint));
+  if (hayKV) await kv(["SET", CLAVE_SUBS, JSON.stringify(quedan)]);
+  else await escribirArchivo(quedan, ARCHIVO_SUBS);
 }
 
 export const dondeGuarda = hayKV ? "upstash" : "archivo local";

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
+import Estado from "./estado";
 
 const YO = {
   nombre: "Alejandro Gabriel Quesada Sánchez",
@@ -32,6 +33,7 @@ export default function Pagina() {
   const [error, setError] = useState("");
   const [idea, setIdea] = useState("");
   const [guardandoIdea, setGuardandoIdea] = useState(false);
+  const [verEstado, setVerEstado] = useState(false);
 
   const cargar = useCallback(async () => {
     const res = await fetch("/api/drafts", { cache: "no-store" });
@@ -40,6 +42,14 @@ export default function Pagina() {
     const { borradores } = await res.json();
     setBorradores(borradores);
     setSesion(true);
+  }, []);
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        // Sin service worker la app sigue funcionando; solo pierde el push.
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -100,6 +110,13 @@ export default function Pagina() {
         <div className="tally">
           <span><b>{nPend}</b> pendientes</span>
           <span><b>{nApro}</b> aprobados</span>
+          <button
+            className="btn ghost estado-boton"
+            onClick={() => setVerEstado((v) => !v)}
+            aria-expanded={verEstado}
+          >
+            Estado
+          </button>
         </div>
       </header>
 
@@ -113,6 +130,8 @@ export default function Pagina() {
           </button>
         ))}
       </div>
+
+      {verEstado && <Estado onCerrar={() => setVerEstado(false)} />}
 
       {error && <p className="error">{error}</p>}
 

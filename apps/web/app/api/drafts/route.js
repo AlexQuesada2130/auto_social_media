@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { autorizado } from "@/lib/auth";
-import { listar, anadir, dondeGuarda, listarTokens, olvidarTokens } from "@/lib/store";
+import { listar, anadir, dondeGuarda, listarTokens, olvidarTokens,
+         listarSubs, olvidarSubs } from "@/lib/store";
 import { enviar } from "@/lib/push";
+import { enviarWeb } from "@/lib/webpush";
 import { nuevoBorrador, LIMITE_CARACTERES } from "@mesa/shared";
 
 export const runtime = "nodejs";
@@ -44,13 +46,22 @@ export async function POST(req) {
   let aviso = null;
   if (borrador.origen !== "idea tuya" && cuerpo.avisar !== false) {
     const primeraLinea = texto.split("\n")[0].slice(0, 90);
-    const r = await enviar(await listarTokens(), {
-      titulo: "Propuesta nueva",
-      cuerpo: primeraLinea,
-      datos: { id: borrador.id },
-    });
-    await olvidarTokens(r.caducados);
-    aviso = { enviados: r.enviados, motivo: r.motivo };
+
+    // Dos canales: la app de Expo y la PWA instalada. Da igual cuál tenga
+    // puesto; si tiene los dos, le llega por los dos.
+    const [expo, web] = await Promise.all([
+      enviar(await listarTokens(), {
+        titulo: "Propuesta nueva", cuerpo: primeraLinea, datos: { id: borrador.id },
+      }),
+      enviarWeb(await listarSubs(), {
+        titulo: "Propuesta nueva", cuerpo: primeraLinea, url: "/",
+      }),
+    ]);
+    await Promise.all([olvidarTokens(expo.caducados), olvidarSubs(web.caducadas)]);
+    aviso = {
+      expo: expo.enviados, web: web.enviados,
+      motivo: expo.motivo || web.motivo,
+    };
   }
 
   return NextResponse.json({ borrador, aviso }, { status: 201 });

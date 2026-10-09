@@ -126,3 +126,41 @@ y el teléfono en la misma red. Es la misma condición que ya impone Expo Go, as
 que no añade ninguna atadura nueva: lo que no funcionará es el chat desde la
 web desplegada en Vercel, porque esa vive en la nube y no alcanza tu Mac. La
 cola sí funciona desde cualquier sitio.
+
+## La PWA: la app sin ordenador y sin Apple
+
+La web de Vercel es instalable. En el iPhone: Safari → Compartir → **Añadir a
+pantalla de inicio**. Queda con icono propio y a pantalla completa, y desde ahí
+**sí admite notificaciones push** (iOS 16.4 en adelante).
+
+Esto es lo que funciona con el Mac apagado, sin pagar los 99 €/año de Apple y
+sin pasar por la App Store. Lo único que se queda fuera es el chat, que vive en
+el Mac.
+
+Las notificaciones se activan desde **Estado → Activar notificaciones**, y hay
+que hacerlo con la app ya instalada: Safari no las admite desde una pestaña.
+
+Claves necesarias en el entorno:
+
+```
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:tu@correo
+```
+
+Se generan una vez con:
+
+```bash
+node -e "console.log(require('web-push').generateVAPIDKeys())"
+```
+
+## Panel de estado
+
+El botón **Estado** de la cabecera abre un semáforo de cuatro luces: el
+almacén, las notificaciones, el generador de propuestas y el chat. Más la
+versión desplegada y el recuento de la cola.
+
+El generador se considera parado si lleva más de 72 horas sin traer nada: con
+un ritmo de 2-3 posts por semana, más silencio que eso significa que algo
+falla. El chat lo comprueba el navegador, no el servidor, porque el puente vive
+en el Mac y Vercel no lo alcanza.
