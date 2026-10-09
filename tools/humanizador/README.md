@@ -49,3 +49,24 @@ quita lo que tú sí dices.
 Derivado de [linkedin-agent-skill](https://github.com/Jakeschincariol/linkedin-agent-skill),
 de Jake Schincariol, bajo licencia MIT. El texto de la licencia original está
 en `LICENSE` y se conserva como exige.
+
+## Segunda calibración, contra textos del autor
+
+La primera calibración usó textos de anécdota en primera persona y rechazaba la
+escritura real del autor, que es analítica y en segunda persona: sus posts
+sacaban 52-67 (REVIEW) cuando deberían pasar.
+
+Medido sobre cinco posts suyos, el eje de persona se mueve en 3.7-10.1 frente a
+1.4-1.5 en texto de relleno. El objetivo bajó de 11.0 a 4.5.
+
+Y apareció algo peor: **BURSTINESS está anticorrelacionado en español**. Daba 25
+a un texto auténtico y 100 al peor de los generados. La variación de longitud de
+frase no distingue nada en un idioma que subordina tanto. SPECIFICITY tampoco
+separa (82-100 frente a 92-100), aunque al menos no condena.
+
+Por eso en español el veredicto lo deciden solo **SLOP DENSITY, FINGERPRINT y
+VOICE**. Los otros dos se calculan y se muestran como información. Un eje que
+puntúa mejor la jerga que el texto real no se recalibra: se retira.
+
+Resultado: los cinco posts del autor pasan (77.9-96.0), el relleno cae
+(22.4-22.9), y el inglés no se movió.

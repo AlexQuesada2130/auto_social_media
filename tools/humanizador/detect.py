@@ -52,8 +52,10 @@ PROPER = re.compile(r"(?<![.!?]\s)(?<!^)\b[A-Z\u00c1\u00c9\u00cd\u00d3\u00da\u00
 #
 # Donde el español sí marca la persona es en los clíticos (me, te, le, nos) y en
 # la conjugación (-é, -í, -amos, -aba). Esa señal combinada, medida sobre cuatro
-# posts humanos y dos de jerga, separa 7.7-13.6 frente a 1.4-1.5. Los objetivos
-# de abajo salen de esa medición.
+# posts humanos y cinco del propio autor, separa 3.7-13.6 frente a 1.4-1.5 en
+# jerga. El objetivo está en 4.5 y no más arriba porque su registro habitual es
+# analítico y en segunda persona, no anecdótico: una calibración hecha solo con
+# textos de anécdota en primera persona rechazaba su voz real.
 #
 # El arranque de frase con "Y" o "Pero" se probó como tercer eje y se descartó:
 # los textos humanos también daban cero, así que no discriminaba nada.
@@ -90,8 +92,8 @@ def _voz_es(text, per100):
     """Español: una sola señal de persona, porque es la que separa."""
     marcas = len(CLITICOS_ES.findall(text)) + len(VERBOS_ES.findall(text))
     persona = marcas * per100
-    parcial = scale(persona, human=11.0, machine=1.5) * 0.70
-    detalle = f"{persona:.1f} marcas de persona por 100 palabras (quieres 8+)"
+    parcial = scale(persona, human=4.5, machine=1.3) * 0.70
+    detalle = f"{persona:.1f} marcas de persona por 100 palabras (quieres 4+)"
     return parcial, 0.70, detalle
 
 
@@ -251,6 +253,20 @@ def check_voice(text, lex, idioma="en"):
 
 CHECKS = ["BURSTINESS", "SPECIFICITY", "SLOP DENSITY", "FINGERPRINT", "VOICE"]
 
+# Qué ejes deciden el veredicto en cada idioma. Los demás se calculan y se
+# muestran, pero no condenan.
+#
+# En español, BURSTINESS resultó estar anticorrelacionado: medido sobre cinco
+# posts reales del autor y dos de relleno, daba 25-36 a los textos auténticos y
+# 100 al peor de los generados. La variación de longitud de frase no distingue
+# en un idioma que subordina tanto. SPECIFICITY tampoco separa (82-100 frente a
+# 92-100), pero al menos no produce falsos negativos, así que se queda como
+# información. Lo que sí separa limpiamente es SLOP DENSITY y VOICE.
+DECIDEN = {
+    "en": CHECKS,
+    "es": ["SLOP DENSITY", "FINGERPRINT", "VOICE"],
+}
+
 
 def run(text, lex, idioma=None):
     idioma = idioma or detectar_idioma(text)
@@ -260,7 +276,7 @@ def run(text, lex, idioma=None):
     results["SLOP DENSITY"] = check_slop(text, lex)
     results["FINGERPRINT"] = check_fingerprint(text)
     results["VOICE"] = check_voice(text, lex, idioma)
-    scores = [results[c][0] for c in CHECKS]
+    scores = [results[c][0] for c in DECIDEN.get(idioma, CHECKS)]
     # The weakest check drags the verdict: a detector only needs one signal.
     overall = statistics.mean(scores) * 0.6 + min(scores) * 0.4
     verdict = "PASS" if overall >= 70 and min(scores) >= 55 else (
@@ -273,7 +289,7 @@ def bar(score, width=24):
     return "#" * filled + "." * (width - filled)
 
 
-def render(results, overall, verdict, label=None, out=sys.stdout):
+def render(results, overall, verdict, label=None, out=sys.stdout, idioma="en"):
     title = "AI DETECTION PANEL" + (f"  -  {label}" if label else "")
     print("\n" + title, file=out)
     print("=" * max(len(title), 62), file=out)
