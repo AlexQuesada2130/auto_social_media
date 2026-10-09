@@ -85,3 +85,21 @@ Estados: `pendiente`, `aprobado`, `descartado`, `publicado`.
 Una contraseña y un token firmado con HMAC. Protege borradores de posts, que no
 son secretos de estado, y es proporcionado a eso. Si esto llegara a guardar algo
 sensible, haría falta autenticación de verdad.
+
+## Notificaciones
+
+La app pide permiso de notificaciones la primera vez que entras, no en la
+pantalla de contraseña: pedirlo antes de que veas para qué sirve se lleva un
+"no" casi seguro. El token se registra en `/api/push/register` y se guarda
+junto a los borradores.
+
+Cuando entra un borrador cuyo origen **no** eres tú, el servidor avisa por la
+API de Expo. Las ideas que escribes tú no notifican nada, que sería avisarte de
+lo que acabas de teclear.
+
+En iOS esto funciona dentro de Expo Go usando las credenciales de Expo. En
+Android dejó de funcionar en el SDK 53 y haría falta un development build; la
+app lo detecta y te lo dice en pantalla en vez de fallar en silencio.
+
+El proyecto de Expo está declarado en `apps/mobile/app.json`, en
+`extra.eas.projectId`. Sin ese identificador no hay token de push.

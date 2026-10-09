@@ -6,7 +6,8 @@ import {
 import * as Clipboard from "expo-clipboard";
 import { StatusBar } from "expo-status-bar";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
-import { cargarToken, entrar, salir, listar, parchear, crear } from "./api";
+import { cargarToken, entrar, salir, listar, parchear, crear, registrarPush } from "./api";
+import { registrarParaPush } from "./notificaciones";
 
 const YO = { iniciales: "AQ", nombre: "Alejandro Gabriel Quesada Sánchez" };
 
@@ -38,6 +39,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [idea, setIdea] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [avisos, setAvisos] = useState(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -58,6 +60,25 @@ export default function App() {
       setArrancando(false);
     })();
   }, [cargar]);
+
+  // El push se pide una vez dentro, no en la pantalla de contraseña: pedir
+  // permiso antes de que vea para qué sirve se lleva un "no" casi seguro.
+  useEffect(() => {
+    if (!dentro) return;
+    (async () => {
+      const { token, motivo } = await registrarParaPush();
+      if (!token) {
+        setAvisos(motivo);
+        return;
+      }
+      try {
+        await registrarPush(token);
+        setAvisos(null);
+      } catch (e) {
+        setAvisos(e.message);
+      }
+    })();
+  }, [dentro]);
 
   async function echarIdea() {
     const texto = idea.trim();
@@ -117,6 +138,7 @@ export default function App() {
       </View>
 
       {error ? <Text style={s.error}>{error}</Text> : null}
+      {avisos ? <Text style={s.aviso}>Sin notificaciones: {avisos}</Text> : null}
 
       <ScrollView
         contentContainerStyle={s.lista}
@@ -191,6 +213,7 @@ function Puerta({ c, s, alEntrar }) {
           accessibilityLabel="Contraseña"
         />
         {error ? <Text style={s.error}>{error}</Text> : null}
+      {avisos ? <Text style={s.aviso}>Sin notificaciones: {avisos}</Text> : null}
         <Pressable
           onPress={probar} disabled={enviando || !password}
           style={[s.boton, s.botonPrimario, (enviando || !password) && s.botonApagado]}
@@ -334,6 +357,7 @@ function estilos(c) {
     vacioTitulo: { fontSize: 17, fontWeight: "600", color: c.tinta },
     vacioTexto: { fontSize: 13, color: c.suave, textAlign: "center" },
     error: { color: c.acento, fontSize: 13, paddingHorizontal: 16, paddingTop: 10 },
+    aviso: { color: c.tenue, fontSize: 12, paddingHorizontal: 16, paddingTop: 8 },
 
     tarjeta: { backgroundColor: c.tarjeta, borderWidth: 1, borderColor: c.linea, borderLeftWidth: 3, borderLeftColor: c.acento },
     tarjetaOk: { borderLeftColor: c.ok },

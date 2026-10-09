@@ -8,9 +8,11 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 const CLAVE = "mesa:borradores";
+const CLAVE_TOKENS = "mesa:tokens";
 const URL_KV = process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN_KV = process.env.UPSTASH_REDIS_REST_TOKEN;
 const ARCHIVO = path.join(process.cwd(), "..", "..", "data", "local.json");
+const ARCHIVO_TOKENS = path.join(process.cwd(), "..", "..", "data", "tokens.json");
 
 const hayKV = Boolean(URL_KV && TOKEN_KV);
 
@@ -31,18 +33,18 @@ async function kv(comando) {
   return result;
 }
 
-async function leerArchivo() {
+async function leerArchivo(ruta = ARCHIVO) {
   try {
-    return JSON.parse(await fs.readFile(ARCHIVO, "utf8"));
+    return JSON.parse(await fs.readFile(ruta, "utf8"));
   } catch (e) {
     if (e.code === "ENOENT") return [];
     throw e;
   }
 }
 
-async function escribirArchivo(lista) {
-  await fs.mkdir(path.dirname(ARCHIVO), { recursive: true });
-  await fs.writeFile(ARCHIVO, JSON.stringify(lista, null, 2) + "\n");
+async function escribirArchivo(lista, ruta = ARCHIVO) {
+  await fs.mkdir(path.dirname(ruta), { recursive: true });
+  await fs.writeFile(ruta, JSON.stringify(lista, null, 2) + "\n");
 }
 
 export async function listar() {
@@ -80,6 +82,34 @@ export async function borrar(id) {
   if (quedan.length === lista.length) return false;
   await guardarTodos(quedan);
   return true;
+}
+
+// --- tokens de push -------------------------------------------------------
+
+export async function listarTokens() {
+  if (hayKV) {
+    const crudo = await kv(["GET", CLAVE_TOKENS]);
+    return crudo ? JSON.parse(crudo) : [];
+  }
+  return leerArchivo(ARCHIVO_TOKENS);
+}
+
+/** Idempotente: registrar el mismo teléfono dos veces no lo duplica. */
+export async function registrarToken(token) {
+  const tokens = await listarTokens();
+  if (tokens.includes(token)) return tokens;
+  const nuevos = [...tokens, token];
+  if (hayKV) await kv(["SET", CLAVE_TOKENS, JSON.stringify(nuevos)]);
+  else await escribirArchivo(nuevos, ARCHIVO_TOKENS);
+  return nuevos;
+}
+
+export async function olvidarTokens(caducados) {
+  if (!caducados?.length) return;
+  const tokens = await listarTokens();
+  const quedan = tokens.filter((t) => !caducados.includes(t));
+  if (hayKV) await kv(["SET", CLAVE_TOKENS, JSON.stringify(quedan)]);
+  else await escribirArchivo(quedan, ARCHIVO_TOKENS);
 }
 
 export const dondeGuarda = hayKV ? "upstash" : "archivo local";

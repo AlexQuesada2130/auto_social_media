@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { autorizado } from "@/lib/auth";
-import { listar, anadir, dondeGuarda } from "@/lib/store";
+import { listar, anadir, dondeGuarda, listarTokens, olvidarTokens } from "@/lib/store";
+import { enviar } from "@/lib/push";
 import { nuevoBorrador, LIMITE_CARACTERES } from "@mesa/shared";
 
 export const runtime = "nodejs";
@@ -37,5 +38,20 @@ export async function POST(req) {
   const borrador = await anadir(
     nuevoBorrador({ texto, origen: cuerpo.origen, notaVisual: cuerpo.notaVisual }),
   );
-  return NextResponse.json({ borrador }, { status: 201 });
+
+  // Avisar solo de lo que llega de fuera. Notificarle a alguien la idea que
+  // acaba de escribir en su propio teléfono es ruido.
+  let aviso = null;
+  if (borrador.origen !== "idea tuya" && cuerpo.avisar !== false) {
+    const primeraLinea = texto.split("\n")[0].slice(0, 90);
+    const r = await enviar(await listarTokens(), {
+      titulo: "Propuesta nueva",
+      cuerpo: primeraLinea,
+      datos: { id: borrador.id },
+    });
+    await olvidarTokens(r.caducados);
+    aviso = { enviados: r.enviados, motivo: r.motivo };
+  }
+
+  return NextResponse.json({ borrador, aviso }, { status: 201 });
 }

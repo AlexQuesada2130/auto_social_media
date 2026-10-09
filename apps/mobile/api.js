@@ -65,4 +65,7 @@ export const crear = (texto, origen = "idea tuya") =>
 export const parchear = (id, cambios) =>
   pedir(`/api/drafts/${id}`, { method: "PATCH", body: JSON.stringify(cambios) });
 
+export const registrarPush = (token) =>
+  pedir("/api/push/register", { method: "POST", body: JSON.stringify({ token }) });
+
 export const urlBase = BASE;

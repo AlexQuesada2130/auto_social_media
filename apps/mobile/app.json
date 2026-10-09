@@ -1,17 +1,22 @@
 {
   "expo": {
     "name": "Mesa de Redacción",
-    "slug": "mesa-linkedin",
+    "slug": "autosocialmedia",
+    "owner": "alex21-dev",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.quesada.mesa"
+      "bundleIdentifier": "com.quesada.autosocialmedia"
     },
+    "plugins": ["expo-notifications"],
     "extra": {
-      "apiUrl": "http://192.168.1.29:3000"
+      "apiUrl": "http://192.168.1.29:3000",
+      "eas": {
+        "projectId": "43b2ebc2-b48d-4a2a-b79e-e49dda3ba9f0"
+      }
     }
   }
 }
