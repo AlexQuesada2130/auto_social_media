@@ -60,6 +60,8 @@ async function pedir(ruta, opciones = {}) {
 }
 
 export const listar = () => pedir("/api/drafts");
+export const crear = (texto, origen = "idea tuya") =>
+  pedir("/api/drafts", { method: "POST", body: JSON.stringify({ texto, origen }) });
 export const parchear = (id, cambios) =>
   pedir(`/api/drafts/${id}`, { method: "PATCH", body: JSON.stringify(cambios) });
 

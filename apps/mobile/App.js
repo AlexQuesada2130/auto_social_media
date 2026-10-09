@@ -6,7 +6,7 @@ import {
 import * as Clipboard from "expo-clipboard";
 import { StatusBar } from "expo-status-bar";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
-import { cargarToken, entrar, salir, listar, parchear } from "./api";
+import { cargarToken, entrar, salir, listar, parchear, crear } from "./api";
 
 const YO = { iniciales: "AQ", nombre: "Alejandro Gabriel Quesada Sánchez" };
 
@@ -36,6 +36,8 @@ export default function App() {
   const [filtro, setFiltro] = useState("pendiente");
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState("");
+  const [idea, setIdea] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -56,6 +58,21 @@ export default function App() {
       setArrancando(false);
     })();
   }, [cargar]);
+
+  async function echarIdea() {
+    const texto = idea.trim();
+    if (!texto) return;
+    setGuardando(true);
+    try {
+      await crear(texto);
+      setIdea("");
+      setFiltro("pendiente");
+      await cargar();
+    } catch (e) {
+      setError(e.message);
+    }
+    setGuardando(false);
+  }
 
   async function cambiar(id, cambios) {
     try {
@@ -110,6 +127,21 @@ export default function App() {
           />
         }
       >
+        <View style={s.echar}>
+          <Text style={s.echarLabel}>ALGO QUE HAS VISTO O SE TE HA OCURRIDO</Text>
+          <TextInput
+            style={s.echarCampo} value={idea} onChangeText={setIdea}
+            multiline placeholder="Pega un post que te haya llamado la atención, o escribe la idea en bruto."
+            placeholderTextColor={c.tenue} accessibilityLabel="Idea nueva"
+          />
+          <Pressable
+            onPress={echarIdea} disabled={guardando || !idea.trim()}
+            style={[s.boton, s.botonPrimario, (guardando || !idea.trim()) && s.botonApagado]}
+          >
+            <Text style={s.botonPrimarioTexto}>{guardando ? "Guardando…" : "A la cola"}</Text>
+          </Pressable>
+        </View>
+
         {visibles.length === 0 ? (
           <View style={s.vacio}>
             <Text style={s.vacioTitulo}>Nada por aquí</Text>
@@ -337,6 +369,11 @@ function estilos(c) {
     botonPrimario: { backgroundColor: c.acento, borderColor: c.acento },
     botonPrimarioTexto: { fontSize: 13, color: "#fff", fontWeight: "600" },
     botonApagado: { opacity: 0.45 },
+
+    echar: { backgroundColor: c.tarjeta, borderWidth: 1, borderColor: c.linea, padding: 14, gap: 9 },
+    echarLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.8, color: c.acento },
+    echarCampo: { backgroundColor: c.campo, borderWidth: 1, borderColor: c.linea, borderRadius: 3,
+                  padding: 10, minHeight: 80, color: c.tinta, fontSize: 15, textAlignVertical: "top" },
 
     puerta: { padding: 24, gap: 12, marginTop: "30%" },
     campo: { backgroundColor: c.campo, borderWidth: 1, borderColor: c.linea, borderRadius: 3, padding: 12, color: c.tinta, fontSize: 16 },

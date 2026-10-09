@@ -176,3 +176,17 @@ textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); 
   .actions .btn.primary { flex-basis: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Echar una idea en bruto a la cola, sin salir de la pantalla. */
+.echar {
+  margin-top: 18px; padding: 14px;
+  background: var(--card); border: 1px solid var(--rule);
+  display: flex; flex-direction: column; gap: 9px;
+}
+.echar-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--accent);
+}
+.echar textarea { min-height: 84px; }
+.echar-pie { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.echar-pie .counter { margin-top: 0; }

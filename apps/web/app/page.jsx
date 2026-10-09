@@ -30,6 +30,8 @@ export default function Pagina() {
   const [filtro, setFiltro] = useState("pendiente");
   const [editando, setEditando] = useState({});
   const [error, setError] = useState("");
+  const [idea, setIdea] = useState("");
+  const [guardandoIdea, setGuardandoIdea] = useState(false);
 
   const cargar = useCallback(async () => {
     const res = await fetch("/api/drafts", { cache: "no-store" });
@@ -62,6 +64,28 @@ export default function Pagina() {
     cargar();
   }
 
+  async function echarIdea(e) {
+    e.preventDefault();
+    const texto = idea.trim();
+    if (!texto) return;
+    setGuardandoIdea(true);
+    const res = await fetch("/api/drafts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texto, origen: "idea tuya" }),
+    });
+    setGuardandoIdea(false);
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({}));
+      setError(error || "No se pudo guardar la idea");
+      return;
+    }
+    setIdea("");
+    setError("");
+    setFiltro("pendiente");
+    cargar();
+  }
+
   if (sesion === null) return <main className="wrap"><div className="note">Comprobando sesión…</div></main>;
   if (sesion === false) return <Puerta alEntrar={cargar} />;
 
@@ -91,6 +115,22 @@ export default function Pagina() {
       </div>
 
       {error && <p className="error">{error}</p>}
+
+      <form className="echar" onSubmit={echarIdea}>
+        <label htmlFor="idea" className="echar-label">
+          Algo que has visto o se te ha ocurrido
+        </label>
+        <textarea
+          id="idea" value={idea} onChange={(e) => setIdea(e.target.value)}
+          placeholder="Pega aquí un post que te haya llamado la atención, o escribe la idea en bruto. No hace falta que esté redactado."
+        />
+        <div className="echar-pie">
+          <span className="counter">{idea.length} caracteres</span>
+          <button className="btn primary" disabled={guardandoIdea || !idea.trim()}>
+            {guardandoIdea ? "Guardando…" : "A la cola"}
+          </button>
+        </div>
+      </form>
 
       <div className="queue">
         {visibles.length === 0 ? (
