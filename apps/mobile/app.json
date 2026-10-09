@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Mesa de Redacción",
+    "slug": "mesa-linkedin",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.quesada.mesa"
+    },
+    "extra": {
+      "apiUrl": "http://192.168.1.29:3000"
+    }
+  }
+}

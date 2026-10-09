@@ -1,0 +1,10 @@
+{
+  "name": "mesa-linkedin",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/web", "apps/mobile", "packages/shared"],
+  "scripts": {
+    "web": "npm run dev --workspace=web",
+    "mobile": "npm run start --workspace=mobile"
+  }
+}

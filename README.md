@@ -1,0 +1,87 @@
+# Mesa de Redacción
+
+Cola de propuestas de post para LinkedIn. Las propuestas entran por la API, se
+revisan desde la web o desde el móvil, y se publican con un toque.
+
+Dos clientes sobre la misma API:
+
+- **`apps/web`** — Next.js, pensada para Vercel. Es la que usas en el ordenador.
+- **`apps/mobile`** — Expo / React Native, para el iPhone a través de Expo Go.
+- **`packages/shared`** — lo que comparten: el límite de 3000 caracteres, el
+  pliegue del *"ver más"* a los 210, y las señales de texto generado.
+
+## Arrancar en local
+
+```bash
+npm install
+
+cd apps/web
+cp ../../.env.example .env.local     # y rellena MESA_PASSWORD y MESA_SECRET
+npm run dev
+```
+
+Queda en `http://localhost:3000`. Sin variables de Upstash los borradores se
+guardan en `data/local.json`, que está fuera del control de versiones.
+
+Para generar el secreto de firma:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+## Meter una propuesta
+
+```bash
+MESA_PASSWORD=tu-clave node scripts/proponer.mjs borrador.txt \
+  --origen "repesca de marzo" --visual "captura del panel de Grafana"
+```
+
+Contra producción, añade `MESA_URL=https://tu-dominio.vercel.app`.
+
+## El móvil
+
+```bash
+cd apps/mobile
+npx expo start
+```
+
+Escanea el QR con Expo Go. La app apunta a `extra.apiUrl` de `app.json`: en
+desarrollo, la IP del Mac en la red local; en producción, el dominio de Vercel.
+Cambia ese valor cuando despliegues.
+
+Con Expo Go y sin cuenta de Expo, la app solo funciona mientras el Mac tenga
+`expo start` corriendo y ambos estén en la misma red. Es el precio de no
+registrarse.
+
+## Desplegar
+
+1. Sube el repositorio a GitHub.
+2. En Vercel, importa el proyecto y pon el *root directory* en `apps/web`.
+3. Añade `MESA_PASSWORD` y `MESA_SECRET` como variables de entorno.
+4. Conecta Upstash Redis desde el panel de Vercel. Las dos variables
+   `UPSTASH_*` aparecen solas y el almacén pasa de archivo a base de datos.
+
+Sin Upstash el despliegue funciona, pero el sistema de archivos de Vercel es
+efímero: los borradores se perderían entre peticiones.
+
+## La API
+
+Todo exige `Authorization: Bearer <token>` o la cookie de sesión.
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| `POST` | `/api/auth` | Cambia la contraseña por un token de 30 días |
+| `GET` | `/api/auth` | Dice si la cookie actual sigue viva |
+| `DELETE` | `/api/auth` | Cierra la sesión |
+| `GET` | `/api/drafts` | Lista los borradores, del más nuevo al más viejo |
+| `POST` | `/api/drafts` | Crea uno |
+| `PATCH` | `/api/drafts/:id` | Cambia `estado`, `texto` o `notaVisual` |
+| `DELETE` | `/api/drafts/:id` | Lo borra |
+
+Estados: `pendiente`, `aprobado`, `descartado`, `publicado`.
+
+## Sobre la seguridad
+
+Una contraseña y un token firmado con HMAC. Protege borradores de posts, que no
+son secretos de estado, y es proporcionado a eso. Si esto llegara a guardar algo
+sensible, haría falta autenticación de verdad.
