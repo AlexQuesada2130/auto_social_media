@@ -103,3 +103,26 @@ app lo detecta y te lo dice en pantalla en vez de fallar en silencio.
 
 El proyecto de Expo está declarado en `apps/mobile/app.json`, en
 `extra.eas.projectId`. Sin ese identificador no hay token de push.
+
+## El chat, sin clave de API
+
+El chat de la app no habla con la API de Anthropic. Habla con el Claude que ya
+tienes instalado en el Mac, a través de un puente local:
+
+```bash
+MESA_SECRET=el-mismo-de-tu-.env.local python3 scripts/puente.py
+```
+
+Imprime la dirección que hay que poner en la app (el engranaje de la pantalla
+de chat). Mientras esa ventana siga abierta, el chat funciona y no cuesta nada:
+va contra tu propia suscripción, no contra una clave facturada por uso.
+
+El puente valida el mismo token firmado que emite la web, así que en el
+teléfono no queda guardada ninguna contraseña. Un token de otro `MESA_SECRET`
+no sirve.
+
+**Lo que esto no es.** Solo funciona con el Mac encendido, el puente corriendo
+y el teléfono en la misma red. Es la misma condición que ya impone Expo Go, así
+que no añade ninguna atadura nueva: lo que no funcionará es el chat desde la
+web desplegada en Vercel, porque esa vive en la nube y no alcanza tu Mac. La
+cola sí funciona desde cualquier sitio.

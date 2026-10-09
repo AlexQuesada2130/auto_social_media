@@ -68,4 +68,7 @@ export const parchear = (id, cambios) =>
 export const registrarPush = (token) =>
   pedir("/api/push/register", { method: "POST", body: JSON.stringify({ token }) });
 
+/** El puente del Mac necesita el mismo token; no se guarda contraseña. */
+export const tokenActual = () => token;
+
 export const urlBase = BASE;

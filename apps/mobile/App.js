@@ -6,7 +6,8 @@ import {
 import * as Clipboard from "expo-clipboard";
 import { StatusBar } from "expo-status-bar";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
-import { cargarToken, entrar, salir, listar, parchear, crear, registrarPush } from "./api";
+import { cargarToken, entrar, salir, listar, parchear, crear, registrarPush, tokenActual } from "./api";
+import Chat from "./Chat";
 import { registrarParaPush } from "./notificaciones";
 
 const YO = { iniciales: "AQ", nombre: "Alejandro Gabriel Quesada Sánchez" };
@@ -40,6 +41,7 @@ export default function App() {
   const [idea, setIdea] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [avisos, setAvisos] = useState(null);
+  const [vista, setVista] = useState("cola");
 
   const cargar = useCallback(async () => {
     try {
@@ -126,6 +128,22 @@ export default function App() {
       </View>
 
       <View style={s.pestanas}>
+        {[{ id: "cola", nombre: "Cola" }, { id: "chat", nombre: "Chat" }].map((v) => (
+          <Pressable
+            key={v.id} onPress={() => setVista(v.id)}
+            style={[s.pestana, vista === v.id && s.pestanaViva]}
+            accessibilityRole="tab" accessibilityState={{ selected: vista === v.id }}
+          >
+            <Text style={[s.pestanaTexto, vista === v.id && s.pestanaTextoVivo]}>
+              {v.nombre}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {vista === "chat" ? <Chat c={c} s={s} token={tokenActual()} /> : (
+      <>
+      <View style={s.pestanas}>
         {FILTROS.map((f) => (
           <Pressable
             key={f.id} onPress={() => setFiltro(f.id)}
@@ -179,6 +197,8 @@ export default function App() {
           <Text style={s.salirTexto}>Cerrar sesión</Text>
         </Pressable>
       </ScrollView>
+      </>
+      )}
     </SafeAreaView>
   );
 }
@@ -398,6 +418,16 @@ function estilos(c) {
     echarLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.8, color: c.acento },
     echarCampo: { backgroundColor: c.campo, borderWidth: 1, borderColor: c.linea, borderRadius: 3,
                   padding: 10, minHeight: 80, color: c.tinta, fontSize: 15, textAlignVertical: "top" },
+
+    chatLista: { padding: 16, gap: 10, paddingBottom: 20 },
+    burbuja: { padding: 11, borderRadius: 10, maxWidth: "88%" },
+    burbujaMia: { alignSelf: "flex-end", backgroundColor: c.acento },
+    burbujaMiaTexto: { color: "#fff", fontSize: 15, lineHeight: 21 },
+    burbujaSuya: { alignSelf: "flex-start", backgroundColor: c.tarjeta,
+                   borderWidth: 1, borderColor: c.linea },
+    burbujaSuyaTexto: { color: c.tinta, fontSize: 15, lineHeight: 21 },
+    chatPie: { flexDirection: "row", alignItems: "flex-end", gap: 7, padding: 12,
+               borderTopWidth: 1, borderTopColor: c.linea, backgroundColor: c.papel },
 
     puerta: { padding: 24, gap: 12, marginTop: "30%" },
     campo: { backgroundColor: c.campo, borderWidth: 1, borderColor: c.linea, borderRadius: 3, padding: 12, color: c.tinta, fontSize: 16 },
