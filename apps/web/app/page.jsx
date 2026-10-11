@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
 import Estado from "./estado";
+import { disponible, activo, activar, desactivar, desbloquear } from "./faceid";
 
 const YO = {
   nombre: "Alejandro Gabriel Quesada Sánchez",
@@ -34,6 +35,9 @@ export default function Pagina() {
   const [idea, setIdea] = useState("");
   const [guardandoIdea, setGuardandoIdea] = useState(false);
   const [verEstado, setVerEstado] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false);
+  const [hayFaceId, setHayFaceId] = useState(false);
+  const [faceIdOn, setFaceIdOn] = useState(false);
 
   const cargar = useCallback(async () => {
     const res = await fetch("/api/drafts", { cache: "no-store" });
@@ -53,11 +57,34 @@ export default function Pagina() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth")
-      .then((r) => r.json())
-      .then(({ sesion }) => (sesion ? cargar() : setSesion(false)))
-      .catch(() => setSesion(false));
+    (async () => {
+      setHayFaceId(await disponible());
+      setFaceIdOn(activo());
+      let hay = false;
+      try {
+        hay = (await (await fetch("/api/auth")).json()).sesion;
+      } catch { /* sin red: se pedirá la contraseña */ }
+
+      if (!hay) return setSesion(false);
+      if (activo()) {
+        // La sesión existe pero no se abre hasta que lo autorice la cara.
+        setBloqueado(true);
+        setSesion(true);
+        return;
+      }
+      cargar();
+    })();
   }, [cargar]);
+
+  async function abrirConCara() {
+    if (await desbloquear()) {
+      setBloqueado(false);
+      setError("");
+      cargar();
+    } else {
+      setError("Face ID no lo dio por bueno. Inténtalo otra vez o entra con la contraseña.");
+    }
+  }
 
   async function parchear(id, cambios) {
     const res = await fetch(`/api/drafts/${id}`, {
@@ -97,7 +124,32 @@ export default function Pagina() {
   }
 
   if (sesion === null) return <main className="wrap"><div className="note">Comprobando sesión…</div></main>;
-  if (sesion === false) return <Puerta alEntrar={cargar} />;
+  if (sesion === false) return <Puerta alEntrar={cargar} hayFaceId={hayFaceId} />;
+
+  if (bloqueado) {
+    return (
+      <main className="wrap">
+        <form className="gate" onSubmit={(e) => { e.preventDefault(); abrirConCara(); }}>
+          <h1>Mesa de Redacción</h1>
+          <p>Tu sesión está guardada. Desbloquéala con Face ID.</p>
+          {error && <span className="error">{error}</span>}
+          <button className="btn primary" type="submit">Desbloquear con Face ID</button>
+          <button
+            type="button" className="btn ghost"
+            onClick={async () => {
+              desactivar();
+              setFaceIdOn(false);
+              await fetch("/api/auth", { method: "DELETE" });
+              setBloqueado(false);
+              setSesion(false);
+            }}
+          >
+            Entrar con la contraseña
+          </button>
+        </form>
+      </main>
+    );
+  }
 
   const visibles = borradores.filter((d) => (d.estado || "pendiente") === filtro);
   const nPend = borradores.filter((d) => (d.estado || "pendiente") === "pendiente").length;
@@ -110,6 +162,19 @@ export default function Pagina() {
         <div className="tally">
           <span><b>{nPend}</b> pendientes</span>
           <span><b>{nApro}</b> aprobados</span>
+          {hayFaceId && (
+            <button
+              className="btn ghost estado-boton"
+              style={faceIdOn ? { color: "var(--accent)", fontWeight: 700 } : undefined}
+              onClick={async () => {
+                if (faceIdOn) { desactivar(); setFaceIdOn(false); return; }
+                try { await activar(); setFaceIdOn(true); setError(""); }
+                catch (e) { setError(e.message); }
+              }}
+            >
+              Face ID
+            </button>
+          )}
           <button
             className="btn ghost estado-boton"
             onClick={() => setVerEstado((v) => !v)}
@@ -191,7 +256,7 @@ export default function Pagina() {
   );
 }
 
-function Puerta({ alEntrar }) {
+function Puerta({ alEntrar, hayFaceId }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -206,8 +271,12 @@ function Puerta({ alEntrar }) {
       body: JSON.stringify({ password }),
     });
     setEnviando(false);
-    if (res.ok) alEntrar();
-    else setError("Contraseña incorrecta");
+    if (!res.ok) return setError("Contraseña incorrecta");
+    if (hayFaceId && !activo()) {
+      // Se propone ahora, no antes: aquí ya se entiende para qué sirve.
+      try { await activar(); } catch { /* si dice que no, se entra igual */ }
+    }
+    alEntrar();
   }
 
   return (

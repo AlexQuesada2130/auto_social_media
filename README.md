@@ -181,3 +181,21 @@ curl -X POST https://TU-DOMINIO/api/ingesta \
 ```
 
 Hasta 10 por envío, y un solo aviso por lote en vez de uno por propuesta.
+
+## Face ID en la PWA
+
+Se apoya en WebAuthn, que es lo que Safari usa para las claves de acceso. Se
+ofrece después del primer acierto con la contraseña, que es cuando se entiende
+para qué sirve, y se enciende o apaga con el botón **Face ID** de la cabecera.
+
+**Qué es y qué no es.** Es un cerrojo local, no un segundo factor contra el
+servidor: quien te autentica sigue siendo la cookie de sesión, y Face ID solo
+decide si la app se abre. El mismo modelo que tenía la versión de Expo. Si
+alguien te roba la cookie del dispositivo, Face ID no lo detiene; lo que
+detiene es a quien coja tu teléfono desbloqueado.
+
+iOS nunca entrega la cara ni la huella: solo responde sí o no. Aquí no se
+guarda ningún dato biométrico, porque no se recibe ninguno.
+
+En la pantalla de bloqueo siempre queda la salida por contraseña, para cuando
+Face ID falle o cambies de teléfono.
