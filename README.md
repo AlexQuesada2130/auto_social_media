@@ -164,3 +164,20 @@ El generador se considera parado si lleva más de 72 horas sin traer nada: con
 un ritmo de 2-3 posts por semana, más silencio que eso significa que algo
 falla. El chat lo comprueba el navegador, no el servidor, porque el puente vive
 en el Mac y Vercel no lo alcanza.
+
+## Ingesta automática
+
+`POST /api/ingesta` acepta propuestas de un proceso automático y avisa al
+móvil cuando entran. Se autentica con `INGEST_TOKEN`, **una llave distinta de
+tu contraseña y a propósito**: la usa una rutina en la nube cuyo prompt queda
+almacenado, así que si se filtrara, lo peor que puede hacer quien la tenga es
+añadirte borradores. No puede leer la cola, ni aprobar, ni borrar.
+
+```bash
+curl -X POST https://TU-DOMINIO/api/ingesta \
+  -H "Authorization: Bearer $INGEST_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"propuestas":[{"texto":"...","origen":"rutina · noticias"}]}'
+```
+
+Hasta 10 por envío, y un solo aviso por lote en vez de uno por propuesta.
