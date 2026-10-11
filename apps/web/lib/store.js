@@ -10,8 +10,25 @@ import path from "node:path";
 const CLAVE = "mesa:borradores";
 const CLAVE_TOKENS = "mesa:tokens";
 const CLAVE_SUBS = "mesa:subs";
-const URL_KV = process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN_KV = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Vercel bautiza las variables de Upstash según el prefijo que elijas al
+// conectar la base de datos, y el prefijo se antepone al nombre por defecto.
+// En vez de depender de haber acertado el prefijo, se busca el primero que
+// exista entre los nombres que Vercel y Upstash usan.
+function primera(...nombres) {
+  for (const n of nombres) if (process.env[n]) return process.env[n];
+  return undefined;
+}
+
+const URL_KV = primera(
+  "UPSTASH_REDIS_REST_URL",
+  "UPSTASH_REDIS_REST_KV_REST_API_URL",
+  "KV_REST_API_URL",
+);
+const TOKEN_KV = primera(
+  "UPSTASH_REDIS_REST_TOKEN",
+  "UPSTASH_REDIS_REST_KV_REST_API_TOKEN",
+  "KV_REST_API_TOKEN",
+);
 const ARCHIVO = path.join(process.cwd(), "..", "..", "data", "local.json");
 const ARCHIVO_TOKENS = path.join(process.cwd(), "..", "..", "data", "tokens.json");
 const ARCHIVO_SUBS = path.join(process.cwd(), "..", "..", "data", "subs.json");
