@@ -9,6 +9,42 @@ export const PLIEGUE = 210;
 
 export const ESTADOS = ["pendiente", "aprobado", "descartado", "publicado"];
 
+/**
+ * Tasa de interacción: el porcentaje de quien lo vio que hizo algo.
+ *
+ * Es la métrica honesta. Las impresiones solas solo dicen a cuánta gente se lo
+ * enseñó LinkedIn, que depende más del algoritmo que del post. Esta dice
+ * cuántos de los que lo vieron reaccionaron, y eso sí es del texto.
+ */
+export function tasaInteraccion(m) {
+  if (!m?.impresiones) return null;
+  const acciones = (m.reacciones || 0) + (m.comentarios || 0) + (m.compartidos || 0);
+  return (acciones / m.impresiones) * 100;
+}
+
+/** Un comentario cuesta mucho más que un "me gusta", y vale más. */
+export function pesoConversacion(m) {
+  if (!m?.reacciones) return null;
+  return ((m.comentarios || 0) / m.reacciones) * 100;
+}
+
+/** Cómo de bien fue, en palabras. Los cortes salen de la media de LinkedIn. */
+export function comoFue(m) {
+  const t = tasaInteraccion(m);
+  if (t === null) return { etiqueta: "sin datos", nivel: "ninguno" };
+  if (t >= 6) return { etiqueta: "muy bien", nivel: "alto" };
+  if (t >= 3) return { etiqueta: "bien", nivel: "medio" };
+  if (t >= 1.5) return { etiqueta: "normal", nivel: "medio" };
+  return { etiqueta: "flojo", nivel: "bajo" };
+}
+
+export const CAMPOS_METRICA = [
+  { id: "impresiones", nombre: "Impresiones", ayuda: "cuánta gente lo vio" },
+  { id: "reacciones", nombre: "Reacciones", ayuda: "me gusta y similares" },
+  { id: "comentarios", nombre: "Comentarios", ayuda: "los que escribieron algo" },
+  { id: "compartidos", nombre: "Compartidos", ayuda: "los que lo republicaron" },
+];
+
 export function nuevoBorrador({ texto, origen = "propuesta", notaVisual = "" }) {
   const ahora = new Date().toISOString();
   return {

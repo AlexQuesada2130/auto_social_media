@@ -242,3 +242,107 @@ textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); 
   font-family: ui-monospace, monospace; font-size: 0.95em;
   background: var(--field); padding: 1px 5px; border-radius: 3px;
 }
+
+/* ───────── Tipografía fluida ─────────
+   El tamaño sale del ancho real de la pantalla en vez de saltar por tramos,
+   así que un iPhone SE y un Pro Max reciben cada uno lo suyo sin escalones. */
+:root {
+  --t-micro:  clamp(0.62rem, 0.58rem + 0.2vw, 0.70rem);
+  --t-menor:  clamp(0.78rem, 0.74rem + 0.2vw, 0.86rem);
+  --t-cuerpo: clamp(0.92rem, 0.88rem + 0.25vw, 1.02rem);
+  --t-titulo: clamp(1.55rem, 1.25rem + 2.2vw, 2.1rem);
+  --gutter:   clamp(14px, 4vw, 20px);
+}
+
+body { font-size: var(--t-cuerpo); }
+.masthead h1 { font-size: var(--t-titulo); }
+.post-text, .echar textarea, textarea { font-size: var(--t-cuerpo); }
+.btn, .tab, .estado-nombre { font-size: var(--t-menor); }
+.tally, .origin, .estado-pie, .counter { font-size: var(--t-micro); }
+
+/* ───────── Áreas seguras ─────────
+   Sin esto el contenido se mete bajo el notch y bajo la barra de inicio en
+   cuanto la app corre a pantalla completa desde el icono. */
+body {
+  padding-inline: max(var(--gutter), env(safe-area-inset-left), env(safe-area-inset-right));
+  padding-top: env(safe-area-inset-top);
+}
+.wrap {
+  /* Hueco para la barra inferior, más la zona del gesto de inicio. */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom) + 20px);
+}
+
+/* ───────── Barra de navegación inferior ───────── */
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--rule);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-boton {
+  appearance: none; background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  /* 56 de alto deja el área táctil por encima de los 44 que pide Apple. */
+  min-height: 56px; padding: 9px 4px 7px;
+  color: var(--faint); font: inherit;
+}
+.nav-boton.viva { color: var(--accent); }
+.nav-boton:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.nav-icono { position: relative; display: block; line-height: 0; }
+/* El neón, solo en el icono activo. Marca dónde estás sin gritar. */
+.nav-boton.viva .nav-icono svg { filter: drop-shadow(0 0 7px var(--accent)); }
+.nav-texto { font-size: var(--t-micro); letter-spacing: 0.01em; }
+.nav-boton.viva .nav-texto { font-weight: 700; }
+.nav-punto {
+  position: absolute; top: -5px; right: -9px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 99px; background: var(--accent); color: var(--accent-text);
+  font-size: 9px; font-weight: 800; line-height: 16px; text-align: center;
+}
+
+/* ───────── Resultados ───────── */
+.resultados { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.panel-patrones { background: var(--card); border: 1px solid var(--rule); padding: 16px; }
+.panel-patrones h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.aviso-muestra { margin: 0 0 12px; font-size: var(--t-micro); color: var(--faint); }
+.patrones { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.patrones li { font-size: var(--t-menor); color: var(--muted); padding-left: 14px; position: relative; }
+.patrones li::before {
+  content: ""; position: absolute; left: 0; top: 0.62em;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+}
+.patrones b { color: var(--ink); }
+
+.recordatorio {
+  padding: 11px 13px; background: var(--accent-bg); color: var(--accent);
+  font-size: var(--t-menor);
+}
+.titulo-lista { font-size: 1rem; margin: 6px 0 0; }
+
+.card.medido.alto { border-left-color: var(--ok); }
+.card.medido.bajo { border-left-color: var(--off); }
+.badge.m-alto { background: var(--ok-bg); color: var(--ok); }
+.badge.m-medio { background: var(--accent-bg); color: var(--accent); }
+.badge.m-bajo { background: var(--off-bg); color: var(--off); }
+.badge.m-ninguno { background: var(--off-bg); color: var(--off); }
+.tasa { margin-left: auto; font-size: var(--t-micro); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.metricas-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+.campo-metrica { display: flex; flex-direction: column; gap: 4px; }
+.campo-metrica span { font-size: var(--t-micro); font-weight: 600; display: flex; flex-direction: column; }
+.campo-metrica small { font-weight: 400; color: var(--faint); }
+.campo-metrica input { min-height: 44px; font-variant-numeric: tabular-nums; }
+
+.metricas-vista { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+.metricas-vista div { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.metricas-vista b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.metricas-vista span { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); text-align: center; }
+
+@media (max-width: 360px) {
+  .nav-texto { display: none; }
+  .nav-boton { min-height: 52px; }
+  .metricas-vista { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}

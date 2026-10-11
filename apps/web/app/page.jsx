@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
 import Estado from "./estado";
 import { disponible, activo, activar, desactivar, desbloquear } from "./faceid";
+import Resultados from "./resultados";
+import Nav from "./nav";
 
 const YO = {
   nombre: "Alejandro Gabriel Quesada Sánchez",
@@ -34,7 +36,7 @@ export default function Pagina() {
   const [error, setError] = useState("");
   const [idea, setIdea] = useState("");
   const [guardandoIdea, setGuardandoIdea] = useState(false);
-  const [verEstado, setVerEstado] = useState(false);
+  const [vista, setVista] = useState("cola");
   const [bloqueado, setBloqueado] = useState(false);
   const [hayFaceId, setHayFaceId] = useState(false);
   const [faceIdOn, setFaceIdOn] = useState(false);
@@ -175,16 +177,23 @@ export default function Pagina() {
               Face ID
             </button>
           )}
-          <button
-            className="btn ghost estado-boton"
-            onClick={() => setVerEstado((v) => !v)}
-            aria-expanded={verEstado}
-          >
-            Estado
-          </button>
         </div>
       </header>
 
+      {vista === "resultados" && (
+        <Resultados borradores={borradores} onGuardar={parchear} />
+      )}
+      {vista === "estado" && <Estado onCerrar={() => setVista("cola")} />}
+      {vista === "chat" && (
+        <div className="note">
+          <b>El chat vive en el Mac</b>
+          Habla con tu Claude a través del puente local, así que solo responde
+          con el ordenador encendido y en tu red. Fuera de casa, usa la app de
+          Claude en el móvil.
+        </div>
+      )}
+
+      {vista === "cola" && (<>
       <div className="tabs" role="tablist">
         {["pendiente", "aprobado", "descartado"].map((f) => (
           <button
@@ -195,8 +204,6 @@ export default function Pagina() {
           </button>
         ))}
       </div>
-
-      {verEstado && <Estado onCerrar={() => setVerEstado(false)} />}
 
       {error && <p className="error">{error}</p>}
 
@@ -239,6 +246,11 @@ export default function Pagina() {
         )}
       </div>
 
+      </>)}
+
+      <Nav activa={vista} onCambiar={setVista} pendientes={nPend} />
+
+      {vista === "cola" && (
       <section className="toolbox">
         <h2>Para el visual</h2>
         <p>Los posts salen en texto. Cuando uno pida imagen o vídeo, aquí tienes las gratuitas.</p>
@@ -252,6 +264,7 @@ export default function Pagina() {
           ))}
         </div>
       </section>
+      )}
     </main>
   );
 }

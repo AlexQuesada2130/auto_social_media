@@ -44,6 +44,24 @@ export async function PATCH(req, { params }) {
 
   if (cuerpo.notaVisual !== undefined) cambios.notaVisual = String(cuerpo.notaVisual);
 
+  if (cuerpo.metricas !== undefined) {
+    const m = cuerpo.metricas || {};
+    const limpias = {};
+    for (const k of ["impresiones", "reacciones", "comentarios", "compartidos"]) {
+      if (m[k] === undefined || m[k] === null || m[k] === "") continue;
+      const n = Number(m[k]);
+      if (!Number.isFinite(n) || n < 0) {
+        return NextResponse.json({ error: `${k} tiene que ser un número positivo` }, { status: 400 });
+      }
+      limpias[k] = Math.round(n);
+    }
+    cambios.metricas = limpias;
+    // Si mete números, es que ya está publicado.
+    if (Object.keys(limpias).length && !cuerpo.estado) cambios.estado = "publicado";
+  }
+
+  if (cuerpo.publicadoEl !== undefined) cambios.publicadoEl = String(cuerpo.publicadoEl).slice(0, 30);
+
   if (!Object.keys(cambios).length) {
     return NextResponse.json({ error: "No hay nada que cambiar" }, { status: 400 });
   }

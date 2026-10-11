@@ -199,3 +199,33 @@ guarda ningún dato biométrico, porque no se recibe ninguno.
 
 En la pantalla de bloqueo siempre queda la salida por contraseña, para cuando
 Face ID falle o cambies de teléfono.
+
+## Resultados: medir para afinar
+
+La pestaña **Resultados** es donde apuntas a mano las cifras que te da
+LinkedIn de cada post publicado: impresiones, reacciones, comentarios y
+compartidos.
+
+Con eso la app calcula la **tasa de interacción**, que es la métrica honesta:
+qué porcentaje de quien lo vio hizo algo. Las impresiones solas dicen a cuánta
+gente se lo enseñó el algoritmo, no si el texto funcionó.
+
+A partir de tres posts con datos empieza a decirte qué tienen en común los que
+mejor van: longitud, si acaban en pregunta, si llevan lista numerada. **Avisa
+de cuántos posts hay detrás de cada observación**, porque con menos de diez
+eso son pistas y no conclusiones, y presentarlas como otra cosa sería
+engañarte.
+
+También mide los comentarios por cada cien reacciones. Un comentario cuesta
+mucho más que un "me gusta", así que esa proporción dice si generaste
+conversación o solo aprobación.
+
+## Navegación
+
+Barra inferior con cuatro iconos: Cola, Resultados, Chat y Estado. Abajo
+porque es donde llega el pulgar — en un iPhone grande la parte alta de la
+pantalla no se alcanza con una mano. Los iconos van dibujados en SVG en vez de
+cargar una librería por cuatro siluetas, y heredan el color del tema.
+
+Por debajo de 360px de ancho las etiquetas desaparecen y quedan solo los
+iconos.
