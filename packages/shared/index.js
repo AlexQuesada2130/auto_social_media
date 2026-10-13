@@ -3,6 +3,18 @@
 
 export const LIMITE_CARACTERES = 3000;
 
+// Cuántas propuestas sin gestionar se toleran en la cola. Pasado ese punto,
+// generar más es ruido: lo que sobra no se lee, se ignora.
+export const TOPE_PENDIENTES = 20;
+
+/** Un título de un vistazo, sacado del propio texto si no viene dado. */
+export function tituloDe(texto) {
+  const primera = (texto || "").trim().split("\n")[0];
+  if (primera.length <= 58) return primera;
+  const corte = primera.lastIndexOf(" ", 58);
+  return primera.slice(0, corte > 30 ? corte : 58) + "…";
+}
+
 // LinkedIn corta el post aquí y muestra "…ver más".
 // Lo que vaya después de este punto solo lo lee quien ya decidió seguir.
 export const PLIEGUE = 210;
@@ -54,11 +66,12 @@ export const CAMPOS_METRICA = [
   { id: "compartidos", nombre: "Compartidos", ayuda: "los que lo republicaron" },
 ];
 
-export function nuevoBorrador({ texto, origen = "propuesta", notaVisual = "", promptVisual = "" }) {
+export function nuevoBorrador({ texto, origen = "propuesta", notaVisual = "", promptVisual = "", titulo = "" }) {
   const ahora = new Date().toISOString();
   return {
     id: `d${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
     texto,
+    titulo: titulo || tituloDe(texto),
     origen,
     notaVisual,
     promptVisual,

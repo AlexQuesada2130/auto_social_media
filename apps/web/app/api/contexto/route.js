@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { listar } from "@/lib/store";
-import { tasaInteraccion, MOTIVOS_DESCARTE } from "@mesa/shared";
+import { tasaInteraccion, MOTIVOS_DESCARTE, TOPE_PENDIENTES } from "@mesa/shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,5 +64,11 @@ export async function GET(req) {
       .map((b) => primeraLinea(b.texto))
       .slice(0, 20),
     pendientesSinLeer: todos.filter((b) => (b.estado || "pendiente") === "pendiente").length,
+    // Cuántas caben hoy. Si es 0, la rutina no debe escribir nada.
+    huecosLibres: Math.max(
+      0,
+      TOPE_PENDIENTES - todos.filter((b) => (b.estado || "pendiente") === "pendiente").length,
+    ),
+    tope: TOPE_PENDIENTES,
   });
 }

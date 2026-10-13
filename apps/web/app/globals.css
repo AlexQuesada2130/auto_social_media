@@ -514,3 +514,26 @@ input, textarea, select { font-size: max(16px, var(--t-cuerpo)); }
 .btn.publicada {
   background: var(--ok-bg); border-color: var(--ok); color: var(--ok); font-weight: 700;
 }
+
+/* ── Título plegable: la cola se recorre de un vistazo ── */
+.titulo-tarjeta {
+  appearance: none; background: none; border: none; cursor: pointer;
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px 10px; text-align: left; color: var(--ink);
+  font: inherit; font-size: var(--t-cuerpo); font-weight: 600; line-height: 1.35;
+  min-height: 44px;
+}
+.titulo-tarjeta span:first-child { flex: 1; }
+.titulo-tarjeta .chevron { font-size: 9px; color: var(--faint); flex: none; }
+.titulo-tarjeta:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.resumen {
+  margin: 0; padding: 0 14px 12px;
+  font-size: var(--t-menor); color: var(--muted); line-height: 1.5;
+  cursor: pointer;
+}
+.mostrar-mas {
+  appearance: none; background: none; border: none; cursor: pointer;
+  color: var(--accent); font: inherit; font-size: var(--t-menor);
+  font-weight: 600; padding: 0 0 0 4px;
+}

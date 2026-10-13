@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR, MOTIVOS_DESCARTE } from "@mesa/shared";
+import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR, MOTIVOS_DESCARTE, tituloDe } from "@mesa/shared";
 import Estado from "./estado";
 import { disponible, activo, activar, desactivar, desbloquear } from "./faceid";
 import Resultados from "./resultados";
@@ -316,6 +316,9 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
   const [preguntandoMotivo, setPreguntandoMotivo] = useState(false);
   const [notas, setNotas] = useState(borrador.notas || "");
   const [verNotas, setVerNotas] = useState(Boolean(borrador.notas));
+  // Las tarjetas nacen plegadas: con veinte en la cola, desplegadas no se
+  // pueden recorrer. Se ve el titulo y el arranque, y se abre lo que interesa.
+  const [desplegado, setDesplegado] = useState(false);
   const estado = borrador.estado || "pendiente";
   const texto = editando ? textoEditado : borrador.texto || "";
   const [antes, despues] = partirPorPliegue(texto);
@@ -338,6 +341,16 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
         <span className="origin">{borrador.origen || "propuesta"}</span>
       </div>
 
+      <button
+        className="titulo-tarjeta"
+        onClick={() => setDesplegado((d) => !d)}
+        aria-expanded={desplegado}
+      >
+        <span>{borrador.titulo || tituloDe(borrador.texto || "")}</span>
+        <span className="chevron" aria-hidden="true">{desplegado ? "▲" : "▼"}</span>
+      </button>
+
+      {(desplegado || editando) && (
       <div className="preview">
         <div className="who">
           <div className="avatar">{YO.iniciales}</div>
@@ -419,6 +432,14 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
           </>
         )}
       </div>
+      )}
+
+      {!desplegado && !editando && (
+        <p className="resumen" onClick={() => setDesplegado(true)}>
+          {(borrador.texto || "").replace(/\n+/g, " ").slice(0, 110)}…
+          <button className="mostrar-mas">Mostrar más</button>
+        </p>
+      )}
 
       <div className="actions">
         {editando ? (

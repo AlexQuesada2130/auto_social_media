@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { anadir, listarTokens, olvidarTokens, listarSubs, olvidarSubs } from "@/lib/store";
 import { enviar } from "@/lib/push";
 import { enviarWeb } from "@/lib/webpush";
-import { nuevoBorrador, LIMITE_CARACTERES } from "@mesa/shared";
+import { nuevoBorrador, LIMITE_CARACTERES, TOPE_PENDIENTES } from "@mesa/shared";
 
 export const runtime = "nodejs";
 
@@ -42,10 +42,25 @@ export async function POST(req) {
     );
   }
 
+  // El tope vive aquí y no en el prompt de la rutina: así se cumple aunque la
+  // rutina lo ignore, se cambie, o alguien use la llave por su cuenta.
+  const cola = await listar();
+  const pendientes = cola.filter((b) => (b.estado || "pendiente") === "pendiente").length;
+  const huecos = Math.max(0, TOPE_PENDIENTES - pendientes);
+
+  if (huecos === 0) {
+    return NextResponse.json({
+      creadas: 0, huecos: 0, pendientes,
+      mensaje: `La cola ya tiene ${pendientes} propuestas sin gestionar. No se admiten más hasta que bajen de ${TOPE_PENDIENTES}.`,
+    }, { status: 200 });
+  }
+
   const creados = [];
   const rechazados = [];
+  let sinSitio = 0;
 
   for (const e of entradas) {
+    if (creados.length >= huecos) { sinSitio += 1; continue; }
     const texto = String(e?.texto || "").trim();
     if (!texto) { rechazados.push("vacío"); continue; }
     if (texto.length > LIMITE_CARACTERES) {
@@ -54,6 +69,7 @@ export async function POST(req) {
     }
     creados.push(await anadir(nuevoBorrador({
       texto,
+      titulo: String(e.titulo || "").slice(0, 70),
       origen: String(e.origen || "rutina automática").slice(0, 60),
       notaVisual: String(e.notaVisual || "").slice(0, 300),
       promptVisual: String(e.promptVisual || "").slice(0, 1500),
@@ -75,7 +91,15 @@ export async function POST(req) {
   }
 
   return NextResponse.json(
-    { creadas: creados.length, ids: creados.map((c) => c.id), rechazadas: rechazados, aviso },
+    {
+      creadas: creados.length,
+      ids: creados.map((c) => c.id),
+      rechazadas: rechazados,
+      sinSitio: sinSitio || undefined,
+      pendientes: pendientes + creados.length,
+      huecos: huecos - creados.length,
+      aviso,
+    },
     { status: creados.length ? 201 : 400 },
   );
 }
