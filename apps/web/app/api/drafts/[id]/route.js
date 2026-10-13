@@ -62,6 +62,19 @@ export async function PATCH(req, { params }) {
 
   if (cuerpo.publicadoEl !== undefined) cambios.publicadoEl = String(cuerpo.publicadoEl).slice(0, 30);
 
+  // Lo que le pides a Claude que cambie de esta propuesta.
+  if (cuerpo.notas !== undefined) cambios.notas = String(cuerpo.notas).slice(0, 2000);
+
+  // El prompt de imagen o vídeo, por si quieres retocarlo antes de usarlo.
+  if (cuerpo.promptVisual !== undefined) {
+    cambios.promptVisual = String(cuerpo.promptVisual).slice(0, 1500);
+  }
+
+  // Por qué lo descartaste. Alimenta a la rutina para que no insista.
+  if (cuerpo.motivoDescarte !== undefined) {
+    cambios.motivoDescarte = String(cuerpo.motivoDescarte).slice(0, 40);
+  }
+
   if (!Object.keys(cambios).length) {
     return NextResponse.json({ error: "No hay nada que cambiar" }, { status: 400 });
   }

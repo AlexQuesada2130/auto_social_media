@@ -56,6 +56,7 @@ export async function POST(req) {
       texto,
       origen: String(e.origen || "rutina automática").slice(0, 60),
       notaVisual: String(e.notaVisual || "").slice(0, 300),
+      promptVisual: String(e.promptVisual || "").slice(0, 1500),
     })));
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR } from "@mesa/shared";
+import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR, MOTIVOS_DESCARTE } from "@mesa/shared";
 import Estado from "./estado";
 import { disponible, activo, activar, desactivar, desbloquear } from "./faceid";
 import Resultados from "./resultados";
@@ -241,6 +241,7 @@ export default function Pagina() {
                 parchear(d.id, { texto: t });
               }}
               onEstado={(estado) => parchear(d.id, { estado })}
+              onCampo={parchear}
             />
           ))
         )}
@@ -309,8 +310,12 @@ function Puerta({ alEntrar, hayFaceId }) {
   );
 }
 
-function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGuardar, onEstado }) {
+function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGuardar, onEstado, onCampo }) {
   const [copiado, setCopiado] = useState(false);
+  const [copiadoVisual, setCopiadoVisual] = useState(false);
+  const [preguntandoMotivo, setPreguntandoMotivo] = useState(false);
+  const [notas, setNotas] = useState(borrador.notas || "");
+  const [verNotas, setVerNotas] = useState(Boolean(borrador.notas));
   const estado = borrador.estado || "pendiente";
   const texto = editando ? textoEditado : borrador.texto || "";
   const [antes, despues] = partirPorPliegue(texto);
@@ -363,8 +368,53 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
                 <ul>{avisos.map((a) => <li key={a}>{a}</li>)}</ul>
               </div>
             )}
-            {borrador.notaVisual && (
+            {borrador.promptVisual && (
+              <div className="visual-prompt">
+                <div className="visual-top">
+                  <span>PROMPT PARA LA IMAGEN</span>
+                  <button
+                    className="btn ghost mini"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(borrador.promptVisual);
+                        setCopiadoVisual(true);
+                        setTimeout(() => setCopiadoVisual(false), 1600);
+                      } catch { /* el navegador lo bloqueó */ }
+                    }}
+                  >
+                    {copiadoVisual ? "Copiado ✓" : "Copiar"}
+                  </button>
+                </div>
+                <p>{borrador.promptVisual}</p>
+                <div className="visual-enlaces">
+                  <a href="https://gemini.google.com/" target="_blank" rel="noopener">Gemini</a>
+                  <a href="https://www.bing.com/images/create" target="_blank" rel="noopener">Bing</a>
+                  <a href="https://klingai.com/" target="_blank" rel="noopener">Kling</a>
+                </div>
+              </div>
+            )}
+            {borrador.notaVisual && !borrador.promptVisual && (
               <div className="visual-note"><b>Visual: </b>{borrador.notaVisual}</div>
+            )}
+
+            {verNotas && (
+              <div className="notas">
+                <label htmlFor={`n-${borrador.id}`}>QUÉ QUIERES QUE CAMBIE</label>
+                <textarea
+                  id={`n-${borrador.id}`} value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  placeholder="Acórtalo. Cambia el gancho. Quítale el final."
+                />
+                <div className="notas-pie">
+                  <span className="estado-pie">Lo leeré y reescribiré esta propuesta.</span>
+                  <button
+                    className="btn mini"
+                    onClick={() => { onCampo(borrador.id, { notas: notas.trim() }); setVerNotas(Boolean(notas.trim())); }}
+                  >
+                    Guardar nota
+                  </button>
+                </div>
+              </div>
             )}
           </>
         )}
@@ -389,14 +439,48 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
               Abrir LinkedIn
             </a>
             <button className="btn ghost" onClick={() => onEditar(borrador.texto || "")}>Editar</button>
+            {estado === "aprobado" && (
+              <button
+                className="btn publicada"
+                onClick={() => onEstado("publicado")}
+                title="Márcalo cuando lo hayas publicado en LinkedIn"
+              >
+                Ya publicada
+              </button>
+            )}
+            <button className="btn ghost" onClick={() => setVerNotas((v) => !v)}>
+              {borrador.notas ? "Nota ✓" : "Pedir cambios"}
+            </button>
             {estado === "descartado" ? (
               <button className="btn ghost" onClick={() => onEstado("pendiente")}>Recuperar</button>
             ) : (
-              <button className="btn ghost" onClick={() => onEstado("descartado")}>Descartar</button>
+              <button className="btn ghost" onClick={() => setPreguntandoMotivo(true)}>Descartar</button>
             )}
           </>
         )}
       </div>
+
+      {preguntandoMotivo && (
+        <div className="motivos">
+          <span>¿Por qué lo descartas? Así dejo de traerte lo mismo.</span>
+          <div className="motivos-botones">
+            {MOTIVOS_DESCARTE.map((m) => (
+              <button
+                key={m.id} className="btn mini"
+                onClick={() => {
+                  setPreguntandoMotivo(false);
+                  onCampo(borrador.id, { estado: "descartado", motivoDescarte: m.id });
+                }}
+              >
+                {m.nombre}
+              </button>
+            ))}
+          </div>
+          <button className="btn ghost mini" onClick={() => setPreguntandoMotivo(false)}>
+            Cancelar
+          </button>
+        </div>
+      )}
     </article>
   );
 }

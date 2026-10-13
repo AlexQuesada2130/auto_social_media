@@ -38,7 +38,8 @@ export async function POST(req) {
   }
 
   const borrador = await anadir(
-    nuevoBorrador({ texto, origen: cuerpo.origen, notaVisual: cuerpo.notaVisual }),
+    nuevoBorrador({ texto, origen: cuerpo.origen, notaVisual: cuerpo.notaVisual,
+                    promptVisual: cuerpo.promptVisual }),
   );
 
   // Avisar solo de lo que llega de fuera. Notificarle a alguien la idea que

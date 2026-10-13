@@ -276,9 +276,7 @@ body {
 .nav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
   display: grid; grid-template-columns: repeat(4, 1fr);
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--paper);
   border-top: 1px solid var(--rule);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -345,4 +343,174 @@ body {
   .nav-texto { display: none; }
   .nav-boton { min-height: 52px; }
   .metricas-vista { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Que se comporte como app y no como web
+
+   Calibrado sobre 390x844 puntos, que es el iPhone 16e (y el 14,
+   el 15 y el 16 normales). Lo de abajo son los tics que delatan
+   a una web metida en pantalla completa.
+   ═══════════════════════════════════════════════════════════ */
+
+html { height: 100%; }
+
+body {
+  /* dvh y no vh: con vh, iOS cuenta la barra del navegador aunque no esté,
+     y queda un hueco muerto al final. */
+  min-height: 100dvh;
+
+  /* Sin esto, arrastrar hacia abajo rebota y asoma el fondo del navegador,
+     que es lo que más delata que no es una app. */
+  overscroll-behavior-y: none;
+
+  /* El destello gris al tocar un botón no existe en apps nativas. */
+  -webkit-tap-highlight-color: transparent;
+
+  /* iOS agranda el texto al girar el teléfono si no se le dice que no. */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* La interfaz no se selecciona al mantener pulsado, como en cualquier app.
+   El contenido sí: el texto del post hay que poder copiarlo. */
+body { -webkit-user-select: none; user-select: none; }
+.post-text, textarea, input, .burbuja, code, .metricas-vista b {
+  -webkit-user-select: text; user-select: text;
+}
+
+/* Mantener pulsado un botón no debe abrir el menú de iOS. */
+button, a, .nav-boton { -webkit-touch-callout: none; }
+
+/* iOS hace zoom al enfocar un campo de menos de 16px. Es la causa número uno
+   de que un formulario "salte" en el móvil. */
+input, textarea, select { font-size: max(16px, var(--t-cuerpo)); }
+
+/* La cabecera se queda arriba al desplazar, como la barra de título de una app. */
+.masthead {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--paper);
+  padding-top: 10px;
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+}
+
+/* Las pestañas viajan pegadas debajo de la cabecera. */
+.tabs {
+  position: sticky; z-index: 9;
+  top: 62px;
+  background: var(--paper);
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+}
+
+/* ── La barra inferior, pegada al borde ──
+   Antes el relleno de seguridad se sumaba al del botón y quedaba flotando
+   demasiado arriba. Ahora el hueco del gesto de inicio es lo único que
+   separa los iconos del borde. */
+.nav {
+  padding-bottom: 0;
+}
+.nav-boton {
+  min-height: 50px;
+  padding: 7px 4px calc(5px + env(safe-area-inset-bottom));
+  gap: 2px;
+}
+
+/* Respuesta inmediata al tocar: en una app el botón se hunde. */
+.nav-boton:active { transform: scale(0.92); }
+.btn:active { transform: scale(0.97); }
+.nav-boton, .btn { transition: transform 90ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .nav-boton, .btn { transition: none; }
+  .nav-boton:active, .btn:active { transform: none; }
+}
+
+/* El desplazamiento dentro de la cola, con inercia y sin barra visible. */
+.queue, .resultados, .chatLista { -webkit-overflow-scrolling: touch; }
+
+/* ── Ajustes finos para 390 puntos de ancho ── */
+@media (max-width: 400px) {
+  .wrap { padding-bottom: calc(66px + env(safe-area-inset-bottom) + 16px); }
+  .tabs { top: 58px; }
+  .masthead h1 { letter-spacing: -0.03em; }
+  .actions { gap: 6px; padding: 10px 12px; }
+  .btn { padding: 8px 11px; }
+  .preview, .cuerpo { padding: 12px; }
+}
+
+/* ── Corrección: la barra tapaba mal ──
+   Con fondo translúcido el contenido se leía por detrás de los iconos. El
+   desenfoque no basta: si el navegador no lo compone, queda un 12% de
+   transparencia por el que se cuela todo. Fondo opaco y se acabó. */
+.nav {
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  /* Una sombra hacia arriba separa la barra del contenido sin pintar nada. */
+  box-shadow: 0 -8px 20px -12px var(--sombra);
+}
+/* Nada de translucidez aquí. Se probó al 88% y al 96% y en ambos casos el
+   texto de las tarjetas se leía por detrás de los iconos. Una barra de
+   navegación tiene que tapar: es su trabajo. */
+
+/* Lo mismo para la cabecera pegajosa. */
+.masthead, .tabs {
+  background: var(--paper);
+}
+
+
+/* La barra se alinea con el contenido en pantallas anchas en vez de cruzar
+   todo el monitor: en el móvil no se nota, en el escritorio evita que los
+   iconos queden desperdigados en los extremos. */
+.nav {
+  max-width: 42rem;
+  margin-inline: auto;
+  border-inline: 1px solid var(--rule);
+}
+
+/* ── El prompt de imagen, listo para copiar ── */
+.visual-prompt {
+  margin-top: 12px; padding: 11px 12px;
+  background: var(--field); border: 1px solid var(--rule);
+  border-radius: 6px; display: flex; flex-direction: column; gap: 7px;
+}
+.visual-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.visual-top span {
+  font-size: var(--t-micro); font-weight: 800;
+  letter-spacing: 0.08em; color: var(--accent);
+}
+.visual-prompt p {
+  margin: 0; font-size: var(--t-menor); color: var(--muted);
+  line-height: 1.5; font-family: ui-monospace, "SF Mono", monospace;
+  overflow-wrap: anywhere;
+}
+.visual-enlaces { display: flex; gap: 12px; flex-wrap: wrap; }
+.visual-enlaces a { font-size: var(--t-micro); color: var(--accent); }
+
+.btn.mini { min-height: 32px; padding: 5px 10px; font-size: var(--t-micro); }
+
+/* ── Notas para que yo reescriba ── */
+.notas {
+  margin-top: 12px; padding: 11px 12px;
+  background: var(--accent-bg); border-radius: 6px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.notas label {
+  font-size: var(--t-micro); font-weight: 800;
+  letter-spacing: 0.08em; color: var(--accent);
+}
+.notas textarea { min-height: 64px; background: var(--card); }
+.notas-pie { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+/* ── Por qué lo descartas ── */
+.motivos {
+  padding: 12px 14px; border-top: 1px solid var(--rule-soft);
+  display: flex; flex-direction: column; gap: 9px;
+  background: var(--field);
+}
+.motivos > span { font-size: var(--t-menor); color: var(--muted); }
+.motivos-botones { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* El botón de publicar cierra el ciclo: verde, no violeta. */
+.btn.publicada {
+  background: var(--ok-bg); border-color: var(--ok); color: var(--ok); font-weight: 700;
 }

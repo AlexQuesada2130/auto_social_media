@@ -38,6 +38,15 @@ export function comoFue(m) {
   return { etiqueta: "flojo", nivel: "bajo" };
 }
 
+/** Por qué descartaste algo. Lo lee la rutina para dejar de traer lo mismo. */
+export const MOTIVOS_DESCARTE = [
+  { id: "tema", nombre: "El tema no me interesa" },
+  { id: "tono", nombre: "No suena a mí" },
+  { id: "repetido", nombre: "Ya he dicho esto" },
+  { id: "flojo", nombre: "El ángulo es flojo" },
+  { id: "otro", nombre: "Otro motivo" },
+];
+
 export const CAMPOS_METRICA = [
   { id: "impresiones", nombre: "Impresiones", ayuda: "cuánta gente lo vio" },
   { id: "reacciones", nombre: "Reacciones", ayuda: "me gusta y similares" },
@@ -45,13 +54,14 @@ export const CAMPOS_METRICA = [
   { id: "compartidos", nombre: "Compartidos", ayuda: "los que lo republicaron" },
 ];
 
-export function nuevoBorrador({ texto, origen = "propuesta", notaVisual = "" }) {
+export function nuevoBorrador({ texto, origen = "propuesta", notaVisual = "", promptVisual = "" }) {
   const ahora = new Date().toISOString();
   return {
     id: `d${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
     texto,
     origen,
     notaVisual,
+    promptVisual,
     estado: "pendiente",
     creado: ahora,
     actualizado: ahora,
