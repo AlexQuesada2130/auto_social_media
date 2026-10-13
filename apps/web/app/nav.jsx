@@ -29,8 +29,11 @@ const ICONOS = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" {...TRAZO} />
     </>
   ),
-  chat: (
-    <path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.5-4.5A8 8 0 1 1 21 12Z" {...TRAZO} />
+  comentar: (
+    <>
+      <path d="M21 11.5a8 8 0 0 1-8 8H8l-5 3 1.5-4.5A8 8 0 1 1 21 11.5Z" {...TRAZO} />
+      <path d="M8.5 11h7M8.5 14.5h4" {...TRAZO} />
+    </>
   ),
   estado: (
     <>
@@ -43,7 +46,7 @@ const ICONOS = {
 const PESTANAS = [
   { id: "cola", nombre: "Cola" },
   { id: "resultados", nombre: "Resultados" },
-  { id: "chat", nombre: "Chat" },
+  { id: "comentar", nombre: "Comentar" },
   { id: "estado", nombre: "Estado" },
 ];
 

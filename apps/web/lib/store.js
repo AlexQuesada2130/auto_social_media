@@ -10,6 +10,7 @@ import path from "node:path";
 const CLAVE = "mesa:borradores";
 const CLAVE_TOKENS = "mesa:tokens";
 const CLAVE_SUBS = "mesa:subs";
+const CLAVE_COM = "mesa:comentarios";
 // Vercel bautiza las variables de Upstash según el prefijo que elijas al
 // conectar la base de datos, y el prefijo se antepone al nombre por defecto.
 // En vez de depender de haber acertado el prefijo, se busca el primero que
@@ -32,6 +33,7 @@ const TOKEN_KV = primera(
 const ARCHIVO = path.join(process.cwd(), "..", "..", "data", "local.json");
 const ARCHIVO_TOKENS = path.join(process.cwd(), "..", "..", "data", "tokens.json");
 const ARCHIVO_SUBS = path.join(process.cwd(), "..", "..", "data", "subs.json");
+const ARCHIVO_COM = path.join(process.cwd(), "..", "..", "data", "comentarios.json");
 
 const hayKV = Boolean(URL_KV && TOKEN_KV);
 
@@ -157,6 +159,45 @@ export async function olvidarSubs(endpoints) {
   const quedan = subs.filter((s) => !endpoints.includes(s.endpoint));
   if (hayKV) await kv(["SET", CLAVE_SUBS, JSON.stringify(quedan)]);
   else await escribirArchivo(quedan, ARCHIVO_SUBS);
+}
+
+// --- posts ajenos a los que quieres comentar -------------------------------
+
+export async function listarComentarios() {
+  if (hayKV) {
+    const crudo = await kv(["GET", CLAVE_COM]);
+    return crudo ? JSON.parse(crudo) : [];
+  }
+  return leerArchivo(ARCHIVO_COM);
+}
+
+async function guardarComentarios(lista) {
+  if (hayKV) await kv(["SET", CLAVE_COM, JSON.stringify(lista)]);
+  else await escribirArchivo(lista, ARCHIVO_COM);
+  return lista;
+}
+
+export async function anadirComentario(c) {
+  const lista = await listarComentarios();
+  lista.unshift(c);
+  return guardarComentarios(lista);
+}
+
+export async function parchearComentario(id, cambios) {
+  const lista = await listarComentarios();
+  const i = lista.findIndex((c) => c.id === id);
+  if (i === -1) return null;
+  lista[i] = { ...lista[i], ...cambios, actualizado: new Date().toISOString() };
+  await guardarComentarios(lista);
+  return lista[i];
+}
+
+export async function borrarComentario(id) {
+  const lista = await listarComentarios();
+  const quedan = lista.filter((c) => c.id !== id);
+  if (quedan.length === lista.length) return false;
+  await guardarComentarios(quedan);
+  return true;
 }
 
 export const dondeGuarda = hayKV ? "upstash" : "archivo local";

@@ -537,3 +537,19 @@ input, textarea, select { font-size: max(16px, var(--t-cuerpo)); }
   color: var(--accent); font: inherit; font-size: var(--t-menor);
   font-weight: 600; padding: 0 0 0 4px;
 }
+
+/* ── Lo aprobado que no sale ── */
+.parados {
+  margin-top: 14px; padding: 11px 13px;
+  background: var(--accent-bg); color: var(--accent);
+  font-size: var(--t-menor); border-radius: 6px; cursor: pointer;
+  border-left: 3px solid var(--accent);
+}
+.parado-chip {
+  font-size: var(--t-micro); font-weight: 700;
+  color: var(--accent); background: var(--accent-bg);
+  padding: 2px 7px; border-radius: 99px; white-space: nowrap;
+}
+
+.comentar { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.comentar .echar input { margin-top: -2px; }

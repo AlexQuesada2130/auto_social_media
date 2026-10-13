@@ -51,6 +51,18 @@ export function comoFue(m) {
 }
 
 /** Por qué descartaste algo. Lo lee la rutina para dejar de traer lo mismo. */
+// Días que puede estar algo aprobado sin publicar antes de que avise. Tres,
+// porque un post de actualidad a la semana ya no es actualidad.
+export const DIAS_PARA_AVISAR = 3;
+
+/** Cuántos días lleva aprobado sin publicarse. null si no aplica. */
+export function diasParado(b) {
+  if (b.estado !== "aprobado") return null;
+  const desde = b.actualizado || b.creado;
+  if (!desde) return null;
+  return Math.floor((Date.now() - new Date(desde).getTime()) / 86400000);
+}
+
 export const MOTIVOS_DESCARTE = [
   { id: "tema", nombre: "El tema no me interesa" },
   { id: "tono", nombre: "No suena a mí" },

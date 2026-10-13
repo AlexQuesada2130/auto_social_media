@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR, MOTIVOS_DESCARTE, tituloDe } from "@mesa/shared";
+import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR, MOTIVOS_DESCARTE, tituloDe, diasParado, DIAS_PARA_AVISAR } from "@mesa/shared";
 import Estado from "./estado";
 import { disponible, activo, activar, desactivar, desbloquear } from "./faceid";
 import Resultados from "./resultados";
 import Nav from "./nav";
+import Comentar from "./comentar";
 
 const YO = {
   nombre: "Alejandro Gabriel Quesada Sánchez",
@@ -184,14 +185,7 @@ export default function Pagina() {
         <Resultados borradores={borradores} onGuardar={parchear} />
       )}
       {vista === "estado" && <Estado onCerrar={() => setVista("cola")} />}
-      {vista === "chat" && (
-        <div className="note">
-          <b>El chat vive en el Mac</b>
-          Habla con tu Claude a través del puente local, así que solo responde
-          con el ordenador encendido y en tu red. Fuera de casa, usa la app de
-          Claude en el móvil.
-        </div>
-      )}
+      {vista === "comentar" && <Comentar />}
 
       {vista === "cola" && (<>
       <div className="tabs" role="tablist">
@@ -339,6 +333,9 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
       <div className="card-top">
         <span className={`badge ${estado}`}>{estado}</span>
         <span className="origin">{borrador.origen || "propuesta"}</span>
+        {(diasParado(borrador) ?? 0) >= DIAS_PARA_AVISAR && (
+          <span className="parado-chip">{diasParado(borrador)} d sin publicar</span>
+        )}
       </div>
 
       <button

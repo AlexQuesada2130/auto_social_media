@@ -6,7 +6,6 @@ revisan desde la web o desde el móvil, y se publican con un toque.
 Dos clientes sobre la misma API:
 
 - **`apps/web`** — Next.js, pensada para Vercel. Es la que usas en el ordenador.
-- **`apps/mobile`** — Expo / React Native, para el iPhone a través de Expo Go.
 - **`packages/shared`** — lo que comparten: el límite de 3000 caracteres, el
   pliegue del *"ver más"* a los 210, y las señales de texto generado.
 
@@ -37,21 +36,6 @@ MESA_PASSWORD=tu-clave node scripts/proponer.mjs borrador.txt \
 ```
 
 Contra producción, añade `MESA_URL=https://tu-dominio.vercel.app`.
-
-## El móvil
-
-```bash
-cd apps/mobile
-npx expo start
-```
-
-Escanea el QR con Expo Go. La app apunta a `extra.apiUrl` de `app.json`: en
-desarrollo, la IP del Mac en la red local; en producción, el dominio de Vercel.
-Cambia ese valor cuando despliegues.
-
-Con Expo Go y sin cuenta de Expo, la app solo funciona mientras el Mac tenga
-`expo start` corriendo y ambos estén en la misma red. Es el precio de no
-registrarse.
 
 ## Desplegar
 
@@ -85,24 +69,6 @@ Estados: `pendiente`, `aprobado`, `descartado`, `publicado`.
 Una contraseña y un token firmado con HMAC. Protege borradores de posts, que no
 son secretos de estado, y es proporcionado a eso. Si esto llegara a guardar algo
 sensible, haría falta autenticación de verdad.
-
-## Notificaciones
-
-La app pide permiso de notificaciones la primera vez que entras, no en la
-pantalla de contraseña: pedirlo antes de que veas para qué sirve se lleva un
-"no" casi seguro. El token se registra en `/api/push/register` y se guarda
-junto a los borradores.
-
-Cuando entra un borrador cuyo origen **no** eres tú, el servidor avisa por la
-API de Expo. Las ideas que escribes tú no notifican nada, que sería avisarte de
-lo que acabas de teclear.
-
-En iOS esto funciona dentro de Expo Go usando las credenciales de Expo. En
-Android dejó de funcionar en el SDK 53 y haría falta un development build; la
-app lo detecta y te lo dice en pantalla en vez de fallar en silencio.
-
-El proyecto de Expo está declarado en `apps/mobile/app.json`, en
-`extra.eas.projectId`. Sin ese identificador no hay token de push.
 
 ## El chat, sin clave de API
 
@@ -229,3 +195,24 @@ cargar una librería por cuatro siluetas, y heredan el color del tema.
 
 Por debajo de 360px de ancho las etiquetas desaparecen y quedan solo los
 iconos.
+
+## Comentar en posts de otros
+
+La pestaña **Comentar** es para la parte de LinkedIn que más rinde y menos
+gente trabaja: entrar bien en los posts ajenos.
+
+Pegas el post de otro y se queda en cola. La rutina, en su siguiente pasada,
+redacta el comentario y lo devuelve a la app. Por eso funciona con el Mac
+apagado y sin coste: lo escribe la misma rutina que ya escribe tus posts.
+
+Cuando lo uses, márcalo. Así no se te acumulan comentarios ya puestos.
+
+## Aprobados que no salen
+
+Lo aprobado que no se publica no cuenta. Por eso el botón **Ya publicada**:
+sin esa señal la app no puede distinguir lo que decidiste publicar de lo que
+de verdad salió, y sin esa distinción no hay nada que medir.
+
+A los tres días sin publicar, un aprobado se marca en su tarjeta y aparece un
+aviso arriba de la cola. Tres días porque un post de actualidad a la semana ya
+no es actualidad.
