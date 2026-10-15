@@ -105,10 +105,10 @@ export default function Pagina() {
     if (!res.ok) {
       const { error } = await res.json().catch(() => ({}));
       setError(error || "No se pudo guardar");
-      return;
+      throw new Error(error || "No se pudo guardar");
     }
     setError("");
-    cargar();
+    await cargar();
   }
 
   async function echarIdea(e) {
@@ -317,6 +317,9 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
   const [preguntandoMotivo, setPreguntandoMotivo] = useState(false);
   const [notas, setNotas] = useState(borrador.notas || "");
   const [verNotas, setVerNotas] = useState(Boolean(borrador.notas));
+  const [guardandoNota, setGuardandoNota] = useState(false);
+  const [notaGuardada, setNotaGuardada] = useState(false);
+  const [errorNota, setErrorNota] = useState("");
   // Las tarjetas nacen plegadas: con veinte en la cola, desplegadas no se
   // pueden recorrer. Se ve el titulo y el arranque, y se abre lo que interesa.
   const [desplegado, setDesplegado] = useState(false);
@@ -340,6 +343,7 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
       <div className="card-top">
         <span className={`badge ${estado}`}>{ESTADO_NOMBRE[estado] || estado}</span>
         <span className="origin">{borrador.origen || "propuesta"}</span>
+        {borrador.notas && <span className="nota-chip">Con nota</span>}
         {(diasParado(borrador) ?? 0) >= DIAS_PARA_AVISAR && (
           <span className="parado-chip">{diasParado(borrador)} días sin publicar</span>
         )}
@@ -423,12 +427,28 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
                   placeholder="Acórtalo. Cambia el gancho. Quítale el final."
                 />
                 <div className="notas-pie">
-                  <span className="estado-pie">Lo leeré y reescribiré esta propuesta.</span>
+                  <span className={`estado-pie${errorNota ? " nota-error" : ""}`}>
+                    {errorNota
+                      || (notaGuardada ? "Guardada. La leeré y reescribiré esta propuesta."
+                                       : "La leeré y reescribiré esta propuesta.")}
+                  </span>
                   <button
-                    className="btn mini"
-                    onClick={() => { onCampo(borrador.id, { notas: notas.trim() }); setVerNotas(Boolean(notas.trim())); }}
+                    className={`btn mini${notaGuardada ? " nota-ok" : ""}`}
+                    disabled={guardandoNota || notas.trim() === (borrador.notas || "")}
+                    onClick={async () => {
+                      setGuardandoNota(true);
+                      setErrorNota("");
+                      try {
+                        await onCampo(borrador.id, { notas: notas.trim() });
+                        setNotaGuardada(true);
+                        setTimeout(() => setNotaGuardada(false), 2500);
+                      } catch (e) {
+                        setErrorNota("No se pudo guardar. Inténtalo otra vez.");
+                      }
+                      setGuardandoNota(false);
+                    }}
                   >
-                    Guardar nota
+                    {guardandoNota ? "Guardando…" : notaGuardada ? "Guardada ✓" : "Guardar nota"}
                   </button>
                 </div>
               </div>
