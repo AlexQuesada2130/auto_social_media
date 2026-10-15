@@ -216,3 +216,34 @@ de verdad salió, y sin esa distinción no hay nada que medir.
 A los tres días sin publicar, un aprobado se marca en su tarjeta y aparece un
 aviso arriba de la cola. Tres días porque un post de actualidad a la semana ya
 no es actualidad.
+
+## Gráficos
+
+Dos formas, elegidas por el trabajo de cada dato y no por gusto.
+
+**Interacción por post**: comparar magnitudes. Barras ordenadas de mayor a
+menor, **todas del mismo violeta**. Los posts son categorías nominales —
+cambiar su orden no cambia el significado— así que colorearlas por su valor
+gastaría el canal de identidad para no decir nada que la longitud no diga ya.
+Solo el extremo va en negrita.
+
+**De qué está hecha esa interacción**: parte y todo. Barra apilada con tres
+categorías reales, cada una con su color, leyenda siempre presente y 2px de
+separación entre segmentos.
+
+Las paletas están **validadas con el comprobador**, no elegidas a ojo, y cada
+modo tiene sus propios pasos en vez de un volteo automático:
+
+| | Claro (fondo `#f5f3f8`) | Oscuro (fondo `#0a0810`) |
+| --- | --- | --- |
+| Reacciones | `#6d28d9` | `#9333ea` |
+| Comentarios | `#0891b2` | `#0891b2` |
+| Compartidos | `#b45309` | `#ea580c` |
+
+Ambas pasan las cinco comprobaciones: banda de luminosidad, mínimo de croma,
+separación bajo daltonismo (ΔE 16.7 en el peor par adyacente), suelo de visión
+normal y contraste sobre el fondo. El primer verde azulado que probé falló el
+mínimo de croma — a ese tono se lee como gris — y hubo que subirlo.
+
+Con menos de cuatro posts medidos, el gráfico lo dice: es una foto, no una
+tendencia.

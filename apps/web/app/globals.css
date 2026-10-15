@@ -591,7 +591,10 @@ body { padding-inline: var(--lado); }
 
 /* Nada puede ser más ancho que la pantalla. Las tablas y el código, que sí
    pueden, se desplazan dentro de su propia caja. */
-.wrap, .card, .preview, .echar, .estado, .resultados, .comentar {
+/* Nada más ancho que su contenedor. Se excluye .wrap a propósito: su
+   max-width de 42rem es lo que centra la columna, y repetirlo aquí lo pisaba
+   por orden de cascada y estiraba la app de lado a lado. */
+.card, .preview, .echar, .estado, .resultados, .comentar, .panel {
   max-width: 100%;
   min-width: 0;
 }
@@ -688,3 +691,104 @@ body { padding-inline: var(--lado); }
 .notas-pie .estado-pie { flex: 1; line-height: 1.35; }
 
 .btn.con-nota { color: var(--accent); border-color: var(--accent); font-weight: 600; }
+
+/* ═══════════ Resultados: doble panel ═══════════ */
+.doble-panel {
+  display: grid; gap: 16px;
+  grid-template-columns: 1fr;
+}
+/* En el móvil se apilan; a partir de tablet van lado a lado. */
+@media (min-width: 720px) {
+  .doble-panel { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+.panel {
+  background: var(--card); border: 1px solid var(--rule);
+  border-radius: 10px; padding: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  min-width: 0;
+}
+.panel-titulo {
+  margin: 0; font-size: var(--t-menor); font-weight: 700;
+  display: flex; align-items: center; gap: 8px; color: var(--muted);
+}
+.panel-cuenta {
+  background: var(--accent-bg); color: var(--accent);
+  font-size: var(--t-micro); font-weight: 700;
+  padding: 2px 8px; border-radius: 99px;
+}
+.panel-vacio { margin: 0; font-size: var(--t-menor); color: var(--faint); line-height: 1.5; }
+.panel .queue { gap: 12px; margin-top: 0; }
+
+/* ═══════════ Gráficos ═══════════
+   Paletas validadas con el comprobador, con pasos propios en cada modo en
+   vez de un volteo automático. Claro: #6d28d9 #0891b2 #b45309.
+   Oscuro:  #9333ea #0891b2 #ea580c. */
+:root {
+  --serie-1: #6d28d9;
+  --serie-2: #0891b2;
+  --serie-3: #b45309;
+  --rejilla: #e2dcec;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --serie-1: #9333ea;
+    --serie-2: #0891b2;
+    --serie-3: #ea580c;
+    --rejilla: #272036;
+  }
+}
+
+.graficos { display: flex; flex-direction: column; gap: 22px; }
+.grafico { margin: 0; }
+.grafico figcaption { margin-bottom: 14px; }
+.grafico h3 { margin: 0 0 3px; font-size: var(--t-cuerpo); font-weight: 700; }
+.grafico figcaption p { margin: 0; font-size: var(--t-micro); color: var(--faint); line-height: 1.45; }
+
+.barras { display: flex; flex-direction: column; }
+.barra-fila { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.barra-etiqueta {
+  font-size: var(--t-micro); color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.barra-pista {
+  position: relative; display: flex; align-items: center; gap: 9px;
+  border-bottom: 1px solid var(--rejilla);
+}
+/* Extremo redondeado solo en la punta; cuadrado en la línea base. */
+.barra-marca {
+  background: var(--serie-1);
+  border-radius: 0 4px 4px 0;
+  transition: opacity 140ms ease;
+  min-width: 3px;
+}
+.barra-valor {
+  font-size: var(--t-micro); color: var(--muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.barra-valor.extremo { color: var(--ink); font-weight: 700; }
+
+/* Barra apilada: 2px de hueco entre segmentos, hecho con el fondo. */
+.barra-pista.apilada { gap: 0; border-bottom: 0; height: 22px; border-radius: 4px; overflow: hidden; }
+.segmento { position: relative; height: 100%; border-right: 2px solid var(--paper); }
+.segmento:last-child { border-right: 0; }
+.s-reacciones { background: var(--serie-1); }
+.s-comentarios { background: var(--serie-2); }
+.s-compartidos { background: var(--serie-3); }
+
+.globo {
+  position: absolute; bottom: calc(100% + 7px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink); color: var(--paper);
+  font-size: var(--t-micro); padding: 4px 9px; border-radius: 5px;
+  white-space: nowrap; z-index: 5; pointer-events: none;
+}
+
+.leyenda {
+  list-style: none; margin: 0 0 12px; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 6px 16px;
+}
+.leyenda li {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--t-micro); color: var(--muted);
+}
+.punto-serie { width: 10px; height: 10px; border-radius: 3px; flex: none; }
