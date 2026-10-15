@@ -62,7 +62,7 @@ export default function Comentar() {
     <section className="comentar">
       <form className="echar" onSubmit={anadir}>
         <label htmlFor="post-ajeno" className="echar-label">
-          UN POST DE OTRO AL QUE QUIERES ENTRAR
+          Un post de otro al que quieres entrar
         </label>
         <textarea
           id="post-ajeno" value={post} onChange={(e) => setPost(e.target.value)}
@@ -89,7 +89,7 @@ export default function Comentar() {
             {esperando.map((c) => (
               <article key={c.id} className="card is-pendiente">
                 <div className="card-top">
-                  <span className="badge pendiente">en cola</span>
+                  <span className="badge pendiente">En cola</span>
                   <span className="origin">{c.de || "sin autor"}</span>
                 </div>
                 <p className="resumen">
@@ -114,7 +114,7 @@ export default function Comentar() {
             <article key={c.id} className={`card ${c.usado ? "is-descartado" : "is-aprobado"}`}>
               <div className="card-top">
                 <span className={`badge ${c.usado ? "descartado" : "aprobado"}`}>
-                  {c.usado ? "usado" : "listo"}
+                  {c.usado ? "Usado" : "Listo"}
                 </span>
                 <span className="origin">{c.de || "sin autor"}</span>
               </div>

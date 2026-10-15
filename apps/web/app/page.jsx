@@ -23,6 +23,13 @@ const HERRAMIENTAS = [
   { tipo: "Vídeo", nombre: "CapCut", que: "Edición, sin límite", url: "https://www.capcut.com/" },
 ];
 
+const ESTADO_NOMBRE = {
+  pendiente: "Pendiente",
+  aprobado: "Aprobado",
+  descartado: "Descartado",
+  publicado: "Publicado",
+};
+
 const VACIO = {
   pendiente: ["Nada pendiente", "Cuando haya propuestas nuevas aparecerán aquí."],
   aprobado: ["Nada aprobado", "Lo que apruebes se queda aquí, listo para publicar."],
@@ -331,10 +338,10 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
   return (
     <article className={`card is-${estado}`}>
       <div className="card-top">
-        <span className={`badge ${estado}`}>{estado}</span>
+        <span className={`badge ${estado}`}>{ESTADO_NOMBRE[estado] || estado}</span>
         <span className="origin">{borrador.origen || "propuesta"}</span>
         {(diasParado(borrador) ?? 0) >= DIAS_PARA_AVISAR && (
-          <span className="parado-chip">{diasParado(borrador)} d sin publicar</span>
+          <span className="parado-chip">{diasParado(borrador)} días sin publicar</span>
         )}
       </div>
 
@@ -371,7 +378,7 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
         ) : (
           <>
             <p className="post-text">{antes}</p>
-            {despues && <><div className="fold">pliegue · ver más</div><p className="post-text">{despues}</p></>}
+            {despues && <><div className="fold">Pliegue · ver más</div><p className="post-text">{despues}</p></>}
             {avisos.length > 0 && (
               <div className="warns">
                 Revisa antes de publicar:
@@ -381,7 +388,7 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
             {borrador.promptVisual && (
               <div className="visual-prompt">
                 <div className="visual-top">
-                  <span>PROMPT PARA LA IMAGEN</span>
+                  <span>Prompt para la imagen</span>
                   <button
                     className="btn ghost mini"
                     onClick={async () => {
@@ -409,7 +416,7 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
 
             {verNotas && (
               <div className="notas">
-                <label htmlFor={`n-${borrador.id}`}>QUÉ QUIERES QUE CAMBIE</label>
+                <label htmlFor={`n-${borrador.id}`}>Qué quieres que cambie</label>
                 <textarea
                   id={`n-${borrador.id}`} value={notas}
                   onChange={(e) => setNotas(e.target.value)}
@@ -433,8 +440,7 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
 
       {!desplegado && !editando && (
         <p className="resumen" onClick={() => setDesplegado(true)}>
-          {(borrador.texto || "").replace(/\n+/g, " ").slice(0, 110)}…
-          <button className="mostrar-mas">Mostrar más</button>
+          {(borrador.texto || "").replace(/\n+/g, " ")}
         </p>
       )}
 

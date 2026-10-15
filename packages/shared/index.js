@@ -43,11 +43,11 @@ export function pesoConversacion(m) {
 /** Cómo de bien fue, en palabras. Los cortes salen de la media de LinkedIn. */
 export function comoFue(m) {
   const t = tasaInteraccion(m);
-  if (t === null) return { etiqueta: "sin datos", nivel: "ninguno" };
-  if (t >= 6) return { etiqueta: "muy bien", nivel: "alto" };
-  if (t >= 3) return { etiqueta: "bien", nivel: "medio" };
-  if (t >= 1.5) return { etiqueta: "normal", nivel: "medio" };
-  return { etiqueta: "flojo", nivel: "bajo" };
+  if (t === null) return { etiqueta: "Sin datos", nivel: "ninguno" };
+  if (t >= 6) return { etiqueta: "Muy bien", nivel: "alto" };
+  if (t >= 3) return { etiqueta: "Bien", nivel: "medio" };
+  if (t >= 1.5) return { etiqueta: "Normal", nivel: "medio" };
+  return { etiqueta: "Flojo", nivel: "bajo" };
 }
 
 /** Por qué descartaste algo. Lo lee la rutina para dejar de traer lo mismo. */
