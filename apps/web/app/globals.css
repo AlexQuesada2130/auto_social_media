@@ -686,3 +686,5 @@ body { padding-inline: var(--lado); }
 }
 .nota-error { color: var(--accent); font-weight: 600; }
 .notas-pie .estado-pie { flex: 1; line-height: 1.35; }
+
+.btn.con-nota { color: var(--accent); border-color: var(--accent); font-weight: 600; }

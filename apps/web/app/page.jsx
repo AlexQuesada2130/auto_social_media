@@ -417,42 +417,6 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
             {borrador.notaVisual && !borrador.promptVisual && (
               <div className="visual-note"><b>Visual: </b>{borrador.notaVisual}</div>
             )}
-
-            {verNotas && (
-              <div className="notas">
-                <label htmlFor={`n-${borrador.id}`}>Qué quieres que cambie</label>
-                <textarea
-                  id={`n-${borrador.id}`} value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Acórtalo. Cambia el gancho. Quítale el final."
-                />
-                <div className="notas-pie">
-                  <span className={`estado-pie${errorNota ? " nota-error" : ""}`}>
-                    {errorNota
-                      || (notaGuardada ? "Guardada. La leeré y reescribiré esta propuesta."
-                                       : "La leeré y reescribiré esta propuesta.")}
-                  </span>
-                  <button
-                    className={`btn mini${notaGuardada ? " nota-ok" : ""}`}
-                    disabled={guardandoNota || notas.trim() === (borrador.notas || "")}
-                    onClick={async () => {
-                      setGuardandoNota(true);
-                      setErrorNota("");
-                      try {
-                        await onCampo(borrador.id, { notas: notas.trim() });
-                        setNotaGuardada(true);
-                        setTimeout(() => setNotaGuardada(false), 2500);
-                      } catch (e) {
-                        setErrorNota("No se pudo guardar. Inténtalo otra vez.");
-                      }
-                      setGuardandoNota(false);
-                    }}
-                  >
-                    {guardandoNota ? "Guardando…" : notaGuardada ? "Guardada ✓" : "Guardar nota"}
-                  </button>
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
@@ -462,6 +426,42 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
         <p className="resumen" onClick={() => setDesplegado(true)}>
           {(borrador.texto || "").replace(/\n+/g, " ")}
         </p>
+      )}
+
+      {verNotas && (
+        <div className="notas">
+          <label htmlFor={`n-${borrador.id}`}>Qué quieres que cambie</label>
+          <textarea
+            id={`n-${borrador.id}`} value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            placeholder="Acórtalo. Cambia el gancho. Quítale el final."
+          />
+          <div className="notas-pie">
+            <span className={`estado-pie${errorNota ? " nota-error" : ""}`}>
+              {errorNota
+              || (notaGuardada ? "Guardada. La leeré y reescribiré esta propuesta."
+              : "La leeré y reescribiré esta propuesta.")}
+            </span>
+            <button
+              className={`btn mini${notaGuardada ? " nota-ok" : ""}`}
+              disabled={guardandoNota || notas.trim() === (borrador.notas || "")}
+              onClick={async () => {
+              setGuardandoNota(true);
+              setErrorNota("");
+              try {
+              await onCampo(borrador.id, { notas: notas.trim() });
+              setNotaGuardada(true);
+              setTimeout(() => setNotaGuardada(false), 2500);
+            } catch (e) {
+            setErrorNota("No se pudo guardar. Inténtalo otra vez.");
+          }
+          setGuardandoNota(false);
+        }}
+        >
+        {guardandoNota ? "Guardando…" : notaGuardada ? "Guardada ✓" : "Guardar nota"}
+        </button>
+        </div>
+        </div>
       )}
 
       <div className="actions">
@@ -492,7 +492,16 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
                 Ya publicada
               </button>
             )}
-            <button className="btn ghost" onClick={() => setVerNotas((v) => !v)}>
+            <button
+              className={`btn ghost${borrador.notas ? " con-nota" : ""}`}
+              onClick={() => {
+                // Abrir la tarjeta al pedir cambios: hay que ver el texto que
+                // estás pidiendo cambiar.
+                if (!verNotas) setDesplegado(true);
+                setVerNotas((v) => !v);
+              }}
+              aria-expanded={verNotas}
+            >
               {borrador.notas ? "Nota ✓" : "Pedir cambios"}
             </button>
             {estado === "descartado" ? (
