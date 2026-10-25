@@ -20,12 +20,19 @@ function usarPuente() {
     fetch(`${url.replace(/\/$/, "")}/salud`, { signal: corte.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(() => setChat({ estado: "bien", detalle: "el puente del Mac responde" }))
-      .catch(() =>
-        setChat({
-          estado: "parado",
-          detalle: "no responde: el Mac está apagado, fuera de la red, o sin puente.py",
-        }),
-      )
+      .catch(() => {
+        // Desde https, el navegador bloquea una llamada a http antes de
+        // intentarla: no es que el Mac esté apagado, es que no hay forma de
+        // preguntárselo. Decir "parado" ahí sería alarmar por algo que nunca
+        // va a funcionar desde producción.
+        const desdeProduccion = window.location.protocol === "https:"
+          && url.startsWith("http:");
+        setChat(desdeProduccion
+          ? { estado: "sin estrenar",
+              detalle: "no alcanzable desde la web publicada; el chat solo funciona abriendo la app en tu red" }
+          : { estado: "parado",
+              detalle: "no responde: el Mac está apagado, fuera de la red, o sin puente.py" });
+      })
       .finally(() => clearTimeout(reloj));
     return () => { clearTimeout(reloj); corte.abort(); };
   }, []);

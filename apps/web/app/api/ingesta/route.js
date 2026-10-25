@@ -84,7 +84,12 @@ export async function POST(req) {
       : `${creados.length} propuestas nuevas en la cola`;
     const [expo, web] = await Promise.all([
       enviar(await listarTokens(), { titulo: "Propuestas nuevas", cuerpo: cuerpoAviso, datos: {} }),
-      enviarWeb(await listarSubs(), { titulo: "Propuestas nuevas", cuerpo: cuerpoAviso, url: "/" }),
+      // Al apartado de borradores y no al panel: el aviso ya dice de que va, y
+      // pasar por el menu obliga a un toque de mas para llegar donde sabes que
+      // vas.
+      enviarWeb(await listarSubs(), {
+        titulo: "Propuestas nuevas", cuerpo: cuerpoAviso, url: "/linkedin",
+      }),
     ]);
     await Promise.all([olvidarTokens(expo.caducados), olvidarSubs(web.caducadas)]);
     aviso = { expo: expo.enviados, web: web.enviados };
