@@ -792,3 +792,35 @@ body { padding-inline: var(--lado); }
   font-size: var(--t-micro); color: var(--muted);
 }
 .punto-serie { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+/* ── Panel de control (/) ─────────────────────────────────────────────── */
+
+.hub-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 12px;
+  margin-block: 8px 28px;
+}
+.hub-tarjeta {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 18px; border: 1px solid var(--rule); border-radius: 10px;
+  background: var(--card); color: var(--ink); text-decoration: none;
+}
+.hub-tarjeta:hover { border-color: var(--accent); box-shadow: var(--glow); }
+.hub-tarjeta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hub-tipo { font-size: var(--t-menor); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.hub-cifra { font-size: var(--t-titulo); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.hub-rojo { color: #dc2626; }
+.hub-pie { font-size: var(--t-menor); color: var(--muted); }
+
+.hub-ajustes h2 { font-size: var(--t-menor); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 8px; }
+.hub-fila {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding-block: 12px; border-top: 1px solid var(--rule-soft);
+}
+.hub-fila > div { display: flex; flex-direction: column; min-width: 12rem; flex: 1; }
+.hub-fila span { font-size: var(--t-menor); color: var(--muted); }
+.hub-fila select {
+  font: inherit; background: var(--field); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 3px; padding: 8px;
+}

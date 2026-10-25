@@ -247,3 +247,58 @@ mínimo de croma — a ese tono se lee como gris — y hubo que subirlo.
 
 Con menos de cuatro posts medidos, el gráfico lo dice: es una foto, no una
 tendencia.
+
+## Panel, dinero y una sola puerta
+
+La app ya no es solo la cola de LinkedIn. Al abrirla se ve un **panel** (`/`)
+con una tarjeta por herramienta:
+
+- **LinkedIn** (`/linkedin`): la Mesa de siempre.
+- **Dinero** (`/dinero`): ingresos y gastos, presupuestos, la cartera de
+  fondos y la guía. Viene de StadisticWallet.
+
+**Una contraseña, la de `MESA_PASSWORD`, lo abre todo.** Al entrar pasan dos
+cosas: el servidor da la sesión de 30 días, como antes, y el navegador usa esa
+misma contraseña para descifrar el dinero. El dinero no sale nunca del
+dispositivo: va cifrado con AES-256-GCM en `localStorage` (`lib/boveda.js`) y
+ninguna ruta de la API lo recibe. Por eso el móvil y el ordenador tienen cada
+uno el suyo; se pasa de uno a otro exportando e importando una copia desde los
+ajustes de Dinero.
+
+**Face ID** se activa desde el panel. Usa la extensión PRF de WebAuthn: la
+cara libera una clave que abre de verdad el cifrado, no solo la pantalla.
+Necesita iOS 18 o macOS 15; en un sistema anterior no se ofrece, y se entra
+con la contraseña.
+
+**Si cambias `MESA_PASSWORD`**, la próxima vez cada dispositivo pide una vez
+la contraseña anterior para volver a cifrar su dinero con la nueva. Sin la
+anterior solo queda empezar de cero e importar una copia.
+
+**Bloqueo:** sin actividad, o con la app en segundo plano, se cierra todo al
+pasar el tiempo elegido en el panel (de 1 a 60 minutos). No hay opción de
+"nunca", a propósito.
+
+### Por qué hay una CSP estricta
+
+La cola muestra texto que no escribes tú (lo que trae la rutina y los posts
+que pegas en Comentar), y el dinero descifrado vive en memoria en la misma
+web. `proxy.js` pone en cada página una Content Security Policy con nonce: solo
+se ejecutan los scripts de la propia app, y nada puede enviar datos a otro
+dominio. Las rutas `/api` quedan fuera del proxy, así que la ingesta no nota
+nada. Si añades un script o un servicio externo, tendrás que permitirlo ahí.
+
+Lo que la CSP no cubre: un script que lograra ejecutarse podría sacar datos
+navegando la página entera a otra web con ellos en la dirección
+(`location = …`). Ningún navegador permite prohibir eso. El hueco se estrecha
+porque la clave solo vive en memoria mientras la app está abierta y el bloqueo
+la borra, pero existe.
+
+El semáforo del chat en Estado no puede comprobar el puente desde la web de
+Vercel: el puente es HTTP en tu red de casa y una página HTTPS no puede
+llamarlo.
+
+### Pendiente
+
+- Yahoo Finance responde 429 a las peticiones desde casa y desde servidores;
+  mientras tanto la cartera usa datos de ejemplo.
+- Los feeds RSS de "Aprende" (Rankia y El Economista) están caídos en origen.

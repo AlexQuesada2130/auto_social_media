@@ -1,0 +1,37 @@
+@tailwind components;
+@tailwind utilities;
+
+/* El reset mínimo que Tailwind da por hecho, solo dentro de #dinero. */
+#dinero {
+  background: #000;
+  color: #f1f5f9;
+  min-height: 100vh;
+  margin-inline: -16px; /* body de la Mesa lleva 16px de margen lateral */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+#dinero *, #dinero ::before, #dinero ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: #334155;
+}
+#dinero h1, #dinero h2, #dinero h3, #dinero h4, #dinero p, #dinero ul, #dinero ol, #dinero figure {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+#dinero ul, #dinero ol { list-style: none; padding: 0; }
+#dinero button {
+  background: transparent; color: inherit; font: inherit; padding: 0; margin: 0;
+  cursor: pointer; text-align: inherit;
+}
+#dinero a { color: inherit; text-decoration: inherit; }
+/* La Mesa da estilo a todos los input/textarea; aquí mandan las utilidades. */
+#dinero input, #dinero select, #dinero textarea {
+  width: auto; border-radius: 0; padding: 0; resize: none; margin: 0;
+  color: inherit; font-family: inherit; line-height: inherit;
+}
+/* iOS hace zoom al enfocar campos de menos de 16px. */
+#dinero input[class], #dinero select[class], #dinero textarea[class] { font-size: 16px; }
+#dinero .font-mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+#dinero svg { display: inline; }

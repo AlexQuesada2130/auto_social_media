@@ -1,8 +1,10 @@
+import { connection } from "next/server";
 import "./globals.css";
+import Candado from "./candado";
 
 export const metadata = {
-  title: "Mesa de Redacción",
-  description: "Cola de propuestas de post para LinkedIn.",
+  title: "Mesa",
+  description: "Panel personal: LinkedIn y dinero.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -25,10 +27,13 @@ export const viewport = {
   ],
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // La CSP lleva un nonce distinto en cada petición (ver proxy.js), y Next solo
+  // puede ponerlo en sus scripts si la página se genera al pedirla.
+  await connection();
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body><Candado>{children}</Candado></body>
     </html>
   );
 }
