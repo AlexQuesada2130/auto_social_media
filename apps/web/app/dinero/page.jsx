@@ -27,8 +27,8 @@ const PESTANAS = [
 
 function Cargando() {
   return (
-    <div className="flex items-center justify-center gap-3 py-24 text-sm text-slate-400">
-      <div className="h-5 w-5 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+    <div className="flex items-center justify-center gap-3 py-24 text-sm text-muted">
+      <div className="h-5 w-5 rounded-full border-2 border-accent border-t-transparent animate-spin"></div>
       Cargando datos del mercado…
     </div>
   );
@@ -63,12 +63,12 @@ function Inversion() {
       <section>
         <div className="flex items-end justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Fondos Core & Comparador</h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <h2 className="text-sm font-semibold text-ink uppercase tracking-wider">Fondos Core & Comparador</h2>
+            <p className="text-xs text-muted mt-1">
               Tus fondos a la izquierda en el gráfico, recomendados a la derecha. Pulsa "Ver más" para descubrir fondos menos famosos.
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-500 font-mono">
+          <div className="hidden sm:flex items-center gap-3 text-[11px] text-muted font-mono">
             <span>{hasPosition ? "Posiciones reales cargadas" : "Sin posición — añádela arriba"}</span>
             {market.lastFetch && (
               <span>· Datos: {market.lastFetch.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</span>
@@ -78,7 +78,7 @@ function Inversion() {
         <FundsExplorer funds={funds} />
       </section>
       <section>
-        <div className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Detalle de mis fondos</div>
+        <div className="text-sm font-semibold text-ink uppercase tracking-wider mb-4">Detalle de mis fondos</div>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           {funds.map((f) => <CoreFundCard key={f.id} fund={f} />)}
         </div>
@@ -96,28 +96,28 @@ export default function Dinero() {
 
   return (
     <div id="dinero">
-      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-30" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <header className="border-b border-rule bg-field backdrop-blur sticky top-0 z-30" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="mx-auto max-w-7xl px-4 lg:px-10 py-3 flex flex-wrap items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white">
+          <Link href="/" className="flex items-center gap-2 text-sm text-muted hover:text-ink">
             <lucide.ChevronLeft size={16} /> Panel
           </Link>
-          <nav className="flex gap-1 rounded-xl bg-slate-900 p-1 order-last sm:order-none w-full sm:w-auto">
+          <nav className="flex gap-1 rounded-xl bg-card p-1 order-last sm:order-none w-full sm:w-auto">
             {PESTANAS.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setPestana(t.id)}
                 className={`flex-1 sm:flex-none rounded-lg px-4 py-1.5 text-sm font-medium transition ${
-                  pestana === t.id ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                  pestana === t.id ? "bg-rule-soft text-ink" : "text-muted hover:text-ink"
                 }`}>
                 {t.label}
               </button>
             ))}
           </nav>
           <div className="flex items-center gap-1">
-            <button onClick={cerrar} className="rounded-lg p-2 text-slate-400 hover:text-white hover:bg-slate-800" title="Bloquear" aria-label="Bloquear">
+            <button onClick={cerrar} className="rounded-lg p-2 text-muted hover:text-ink hover:bg-rule-soft" title="Bloquear" aria-label="Bloquear">
               <lucide.Lock size={16} />
             </button>
-            <button onClick={() => setAjustes(true)} className="rounded-lg p-2 text-slate-400 hover:text-white hover:bg-slate-800" title="Ajustes del dinero" aria-label="Ajustes del dinero">
+            <button onClick={() => setAjustes(true)} className="rounded-lg p-2 text-muted hover:text-ink hover:bg-rule-soft" title="Ajustes del dinero" aria-label="Ajustes del dinero">
               <lucide.Settings size={16} />
             </button>
           </div>
@@ -128,7 +128,7 @@ export default function Dinero() {
         {pestana === "money" && <MoneyManager />}
         {pestana === "invest" && <Inversion />}
         {pestana === "learn" && <TradingGuide />}
-        <footer className="pt-6 pb-2 flex items-center gap-2 text-[11px] text-slate-600">
+        <footer className="pt-6 pb-2 flex items-center gap-2 text-[11px] text-muted">
           <lucide.ShieldCheck size={12} />
           <span>Cifrado en este dispositivo · Uso personal · No constituye asesoramiento financiero</span>
         </footer>

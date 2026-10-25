@@ -6,13 +6,13 @@ import { copiaCifrada, esCopiaCifrada, abrirCopia, descargar, datosVacios } from
 const hoy = () => new Date().toISOString().slice(0, 10);
 
 const campo =
-  "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-500 focus:outline-none";
+  "w-full rounded-lg border border-rule bg-field px-3 py-2 text-sm text-ink placeholder-faint focus:border-accent focus:outline-none";
 
 function Seccion({ titulo, texto, children, peligro }) {
   return (
-    <section className={`rounded-xl border p-4 ${peligro ? 'border-red-500/30 bg-red-500/5' : 'border-slate-800 bg-slate-950/50'}`}>
-      <h3 className={`text-sm font-semibold ${peligro ? 'text-red-300' : 'text-white'}`}>{titulo}</h3>
-      {texto && <p className="text-xs text-slate-400 mt-1 mb-3 leading-relaxed">{texto}</p>}
+    <section className={`rounded-xl border p-4 ${peligro ? 'border-neg bg-neg-bg' : 'border-rule bg-field'}`}>
+      <h3 className={`text-sm font-semibold ${peligro ? 'text-neg' : 'text-ink'}`}>{titulo}</h3>
+      {texto && <p className="text-xs text-muted mt-1 mb-3 leading-relaxed">{texto}</p>}
       {children}
     </section>
   );
@@ -20,8 +20,8 @@ function Seccion({ titulo, texto, children, peligro }) {
 
 function Boton({ onClick, icono, children, tono = 'neutro', disabled, type = 'button' }) {
   const tonos = {
-    neutro: 'border-slate-700 text-slate-200 hover:border-emerald-500/60 hover:text-white',
-    peligro: 'border-red-500/40 text-red-300 hover:bg-red-500/10',
+    neutro: 'border-rule text-ink hover:border-accent hover:text-ink',
+    peligro: 'border-neg text-neg hover:bg-neg-bg',
   };
   return (
     <button type={type} onClick={onClick} disabled={disabled}
@@ -65,10 +65,10 @@ function Exportar({ datos }) {
         <form onSubmit={cifrada} className="space-y-2">
           <input type="password" autoFocus autoComplete="new-password" placeholder="Contraseña para esta copia (mín. 8)" value={clave} onChange={(e) => setClave(e.target.value)} className={campo} />
           <input type="password" autoComplete="new-password" placeholder="Repítela" value={repite} onChange={(e) => setRepite(e.target.value)} className={campo} />
-          <p className="text-[11px] text-slate-500">Puede ser la misma de la app. La necesitarás para importarla en otro dispositivo.</p>
+          <p className="text-[11px] text-muted">Puede ser la misma de la app. La necesitarás para importarla en otro dispositivo.</p>
           <div className="flex gap-2">
             <Boton type="submit" disabled={!valida || ocupado} icono={<lucide.Lock size={14} />}>{ocupado ? 'Cifrando…' : 'Descargar copia cifrada'}</Boton>
-            <button type="button" onClick={() => setPidiendo(false)} className="text-xs text-slate-400 hover:text-white px-2">Cancelar</button>
+            <button type="button" onClick={() => setPidiendo(false)} className="text-xs text-muted hover:text-ink px-2">Cancelar</button>
           </div>
         </form>
       ) : (
@@ -84,8 +84,8 @@ function Exportar({ datos }) {
           </Boton>
         </div>
       )}
-      <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
-        La copia cifrada es la recomendada. Los otros dos formatos van <span className="text-amber-300/80">sin cifrar</span>.
+      <p className="text-[11px] text-muted mt-3 leading-relaxed">
+        La copia cifrada es la recomendada. Los otros dos formatos van <span className="text-warn">sin cifrar</span>.
         Sirven también las copias de StadisticWallet.
       </p>
     </Seccion>
@@ -131,21 +131,21 @@ function Importar() {
     <Seccion titulo="Importar copia" texto="Sustituye el dinero de este dispositivo por el de una copia. Queda cifrado con la contraseña de la app.">
       {pendiente ? (
         <form onSubmit={confirmar} className="space-y-2">
-          <div className="text-xs text-slate-300">Archivo: <span className="font-mono">{pendiente.nombre}</span></div>
+          <div className="text-xs text-ink">Archivo: <span className="font-mono">{pendiente.nombre}</span></div>
           {pendiente.cifrada && (
             <input type="password" autoFocus placeholder="Contraseña de esa copia" value={clave} onChange={(e) => setClave(e.target.value)} className={campo} />
           )}
-          <p className="text-[11px] text-amber-300/80">Esto reemplaza lo que tienes ahora.</p>
+          <p className="text-[11px] text-warn">Esto reemplaza lo que tienes ahora.</p>
           <div className="flex gap-2">
             <Boton type="submit" tono="peligro" disabled={pendiente.cifrada && !clave}>Reemplazar mis datos</Boton>
-            <button type="button" onClick={() => setPendiente(null)} className="text-xs text-slate-400 hover:text-white px-2">Cancelar</button>
+            <button type="button" onClick={() => setPendiente(null)} className="text-xs text-muted hover:text-ink px-2">Cancelar</button>
           </div>
         </form>
       ) : (
         <Boton icono={<lucide.Upload size={14} />} onClick={() => fichero.current?.click()}>Elegir archivo…</Boton>
       )}
       <input ref={fichero} type="file" accept="application/json,.json" hidden onChange={elegir} />
-      {aviso && <p className={`text-xs mt-2 ${aviso.error ? 'text-red-400' : 'text-emerald-400'}`}>{aviso.texto}</p>}
+      {aviso && <p className={`text-xs mt-2 ${aviso.error ? 'text-neg' : 'text-pos'}`}>{aviso.texto}</p>}
     </Seccion>
   );
 }
@@ -178,12 +178,12 @@ export function AjustesDinero({ onCerrar }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCerrar} />
-      <aside role="dialog" aria-label="Ajustes del dinero" className="relative h-full w-full max-w-md overflow-y-auto border-l border-slate-800 bg-slate-900 p-6 space-y-4">
+      <aside role="dialog" aria-label="Ajustes del dinero" className="relative h-full w-full max-w-md overflow-y-auto border-l border-rule bg-card p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2"><lucide.Settings size={16} /> Ajustes del dinero</h2>
-          <button onClick={onCerrar} className="text-slate-400 hover:text-white" aria-label="Cerrar"><lucide.X size={18} /></button>
+          <h2 className="text-base font-semibold text-ink flex items-center gap-2"><lucide.Settings size={16} /> Ajustes del dinero</h2>
+          <button onClick={onCerrar} className="text-muted hover:text-ink" aria-label="Cerrar"><lucide.X size={18} /></button>
         </div>
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-emerald-200/90 flex gap-2">
+        <div className="rounded-xl border border-accent bg-pos-bg p-3 text-xs text-pos flex gap-2">
           <lucide.ShieldCheck size={14} className="shrink-0 mt-0.5" />
           <span>Cifrado con AES-256 y guardado solo en este dispositivo. No se envía al servidor. El móvil y el ordenador tienen cada uno el suyo: para pasar datos, exporta e importa una copia.</span>
         </div>

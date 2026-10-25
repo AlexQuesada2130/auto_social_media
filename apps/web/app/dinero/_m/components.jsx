@@ -131,14 +131,14 @@ export function InfoTip({ termKey, label }) {
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={(e) => {e.stopPropagation();setOpen((v) => !v);}}
-        className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-slate-600 text-[10px] font-semibold text-slate-400 hover:border-slate-400 hover:text-slate-200 transition"
+        className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-rule text-[10px] font-semibold text-muted hover:border-ink hover:text-ink transition"
         aria-label={`Información sobre ${entry.title}`}>
         <lucide.Info size={10} strokeWidth={2.5} />
       </button>
       {open && (
-        <span className="absolute left-1/2 top-full z-50 mt-2 w-64 -translate-x-1/2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-left text-xs font-normal text-slate-200 shadow-2xl shadow-black/50 ring-1 ring-black/20">
-          <span className="block font-semibold text-white mb-1">{entry.title}</span>
-          <span className="block text-slate-300 leading-relaxed">{entry.body}</span>
+        <span className="absolute left-1/2 top-full z-50 mt-2 w-64 -translate-x-1/2 rounded-lg border border-rule bg-card px-3 py-2.5 text-left text-xs font-normal text-ink shadow-2xl shadow-black/50 ring-1 ring-black/20">
+          <span className="block font-semibold text-ink mb-1">{entry.title}</span>
+          <span className="block text-ink leading-relaxed">{entry.body}</span>
         </span>
       )}
     </span>
@@ -200,32 +200,32 @@ export function CoreFundCard({ fund }) {
   const m = fundMetrics(fund);
   const positive = m.pnl >= 0;
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-6 flex flex-col gap-5 hover:border-slate-700 transition">
+    <div className="rounded-2xl border border-rule bg-card backdrop-blur p-6 flex flex-col gap-5 hover:border-rule transition">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300 uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1 rounded-md bg-rule-soft px-2 py-0.5 text-[10px] font-medium text-ink uppercase tracking-wider">
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: fund.color }}></span>
               Core
             </span>
-            <span className="text-[11px] text-slate-500 font-mono">{fund.shareClass}</span>
+            <span className="text-[11px] text-muted font-mono">{fund.shareClass}</span>
             <InfoTip termKey="ACC" />
           </div>
-          <h3 className="mt-2 text-lg font-semibold text-white leading-tight">{fund.name}</h3>
-          <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+          <h3 className="mt-2 text-lg font-semibold text-ink leading-tight">{fund.name}</h3>
+          <div className="mt-1 flex items-center gap-2 text-xs text-muted">
             <span className="font-mono">{fund.isin}</span>
             <InfoTip termKey="ISIN" />
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 flex items-center justify-end">
+          <div className="text-[10px] uppercase tracking-wider text-muted flex items-center justify-end">
             NAV <InfoTip termKey="NAV" />
           </div>
-          <div className="text-2xl font-semibold text-white font-mono mt-0.5">
+          <div className="text-2xl font-semibold text-ink font-mono mt-0.5">
             {fund.nav.toFixed(4)}
           </div>
-          <div className={`text-xs font-medium ${m.r1d >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-            {pct(m.r1d)} <span className="text-slate-500">último mes</span>
+          <div className={`text-xs font-medium ${m.r1d >= 0 ? "text-pos" : "text-neg"}`}>
+            {pct(m.r1d)} <span className="text-muted">último mes</span>
           </div>
         </div>
       </div>
@@ -236,48 +236,48 @@ export function CoreFundCard({ fund }) {
       </div>
 
       {/* Posición */}
-      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800">
+      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-rule">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500">Invertido</div>
-          <div className="mt-1 text-base font-semibold text-white font-mono">{eur(m.invested)}</div>
-          <div className="text-[11px] text-slate-500 mt-0.5 font-mono">{fund.held.toFixed(3)} part.</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted">Invertido</div>
+          <div className="mt-1 text-base font-semibold text-ink font-mono">{eur(m.invested)}</div>
+          <div className="text-[11px] text-muted mt-0.5 font-mono">{fund.held.toFixed(3)} part.</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500">Valor actual</div>
-          <div className="mt-1 text-base font-semibold text-white font-mono">{eur(m.value)}</div>
-          <div className="text-[11px] text-slate-500 mt-0.5 font-mono">PMC {fund.avgCost.toFixed(2)} €</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted">Valor actual</div>
+          <div className="mt-1 text-base font-semibold text-ink font-mono">{eur(m.value)}</div>
+          <div className="text-[11px] text-muted mt-0.5 font-mono">PMC {fund.avgCost.toFixed(2)} €</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 flex items-center">
+          <div className="text-[10px] uppercase tracking-wider text-muted flex items-center">
             P&L <InfoTip termKey="PnL" />
           </div>
-          <div className={`mt-1 text-base font-semibold font-mono ${positive ? "text-emerald-400" : "text-red-400"}`}>
+          <div className={`mt-1 text-base font-semibold font-mono ${positive ? "text-pos" : "text-neg"}`}>
             {positive ? "+" : ""}{eur(m.pnl)}
           </div>
-          <div className={`text-[11px] font-mono mt-0.5 ${positive ? "text-emerald-400/80" : "text-red-400/80"}`}>
+          <div className={`text-[11px] font-mono mt-0.5 ${positive ? "text-pos" : "text-neg"}`}>
             {pct(m.pnlPct)}
           </div>
         </div>
       </div>
 
       {/* Stats fondo */}
-      <div className="grid grid-cols-4 gap-3 pt-4 border-t border-slate-800">
+      <div className="grid grid-cols-4 gap-3 pt-4 border-t border-rule">
         <Stat label="TER" value={`${fund.ter.toFixed(2)}%`} tip="TER" />
-        <Stat label="1A" value={pct(m.r1y, 1)} valueColor={m.r1y >= 0 ? "text-emerald-400" : "text-red-400"} />
-        <Stat label="3A anual." value={pct(m.r3y, 1)} valueColor={m.r3y >= 0 ? "text-emerald-400" : "text-red-400"} tip="CAGR" />
+        <Stat label="1A" value={pct(m.r1y, 1)} valueColor={m.r1y >= 0 ? "text-pos" : "text-neg"} />
+        <Stat label="3A anual." value={pct(m.r3y, 1)} valueColor={m.r3y >= 0 ? "text-pos" : "text-neg"} tip="CAGR" />
         <Stat label="Holdings" value={fund.holdings.toLocaleString("es-ES")} />
       </div>
 
       {/* Distribución regional */}
-      <div className="pt-4 border-t border-slate-800">
+      <div className="pt-4 border-t border-rule">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 flex items-center">
+          <div className="text-[10px] uppercase tracking-wider text-muted flex items-center">
             Distribución regional
             <InfoTip termKey={fund.id === "world" ? "MSCIWorld" : "MSCIEM"} />
           </div>
-          <div className="text-[10px] text-slate-500 font-mono">{fund.benchmark}</div>
+          <div className="text-[10px] text-muted font-mono">{fund.benchmark}</div>
         </div>
-        <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-800">
+        <div className="flex h-2 w-full overflow-hidden rounded-full bg-rule-soft">
           {fund.topRegions.map((r, i) => (
             <div
               key={r.name}
@@ -290,14 +290,14 @@ export function CoreFundCard({ fund }) {
             </div>
           ))}
         </div>
-        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">
           {fund.topRegions.map((r, i) => (
             <span key={r.name} className="inline-flex items-center gap-1.5">
               <span
                 className="h-1.5 w-1.5 rounded-sm"
                 style={{ background: `oklch(${78 - i * 8}% 0.08 ${fund.id === "world" ? 160 : 240})` }}>
               </span>
-              {r.name} <span className="font-mono text-slate-500">{r.w.toFixed(1)}%</span>
+              {r.name} <span className="font-mono text-muted">{r.w.toFixed(1)}%</span>
             </span>
           ))}
         </div>
@@ -306,10 +306,10 @@ export function CoreFundCard({ fund }) {
   );
 }
 
-export function Stat({ label, value, valueColor = "text-white", tip }) {
+export function Stat({ label, value, valueColor = "text-ink", tip }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider text-slate-500 flex items-center">
+      <div className="text-[10px] uppercase tracking-wider text-muted flex items-center">
         {label} {tip && <InfoTip termKey={tip} />}
       </div>
       <div className={`mt-1 text-sm font-semibold font-mono ${valueColor}`}>{value}</div>
@@ -339,14 +339,14 @@ export function ComparisonChart({ data, range, onRange }) {
   const last = norm[norm.length - 1];
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-6">
+    <div className="rounded-2xl border border-rule bg-card backdrop-blur p-6">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
         <div>
-          <h2 className="text-base font-semibold text-white flex items-center">
+          <h2 className="text-base font-semibold text-ink flex items-center">
             Evolución comparada
             <InfoTip termKey="Benchmark" />
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted mt-1">
             Base 100 al inicio del periodo. Compara cómo se han movido tus dos fondos lado a lado.
           </p>
         </div>
@@ -355,15 +355,15 @@ export function ComparisonChart({ data, range, onRange }) {
             <LegendDot color="#10B981" label="MSCI World" value={last.World.toFixed(1)} />
             <LegendDot color="#60A5FA" label="MSCI Emerging" value={last.Emerging.toFixed(1)} />
           </div>
-          <div className="flex rounded-lg border border-slate-700 bg-slate-900 p-0.5">
+          <div className="flex rounded-lg border border-rule bg-card p-0.5">
             {ranges.map((r) => (
               <button
                 key={r.id}
                 onClick={() => onRange(r.id)}
                 className={`px-2.5 py-1 text-xs font-medium rounded-md transition ${
                   range === r.id ?
-                  "bg-slate-700 text-white" :
-                  "text-slate-400 hover:text-slate-200"}`
+                  "bg-rule text-ink" :
+                  "text-muted hover:text-ink"}`
                 }>
                 {r.id}
               </button>
@@ -374,34 +374,34 @@ export function ComparisonChart({ data, range, onRange }) {
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={norm} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="2 4" stroke="#1e293b" vertical={false} />
+            <CartesianGrid strokeDasharray="2 4" stroke="var(--rule-soft)" vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fill: "#64748b", fontSize: 11 }}
-              axisLine={{ stroke: "#1e293b" }}
+              tick={{ fill: "var(--muted)", fontSize: 11 }}
+              axisLine={{ stroke: "var(--rule-soft)" }}
               tickLine={false}
               interval={Math.max(0, Math.floor(norm.length / 8) - 1)} />
             <YAxis
-              tick={{ fill: "#64748b", fontSize: 11 }}
+              tick={{ fill: "var(--muted)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               domain={["dataMin - 5", "dataMax + 5"]}
               tickFormatter={(v) => v.toFixed(0)} />
-            <ReferenceLine y={100} stroke="#334155" strokeDasharray="3 3" />
+            <ReferenceLine y={100} stroke="var(--rule)" strokeDasharray="3 3" />
             <RTooltip
               contentStyle={{
-                background: "#0f172a",
-                border: "1px solid #334155",
+                background: "var(--card)",
+                border: "1px solid var(--rule)",
                 borderRadius: "8px",
                 fontSize: "12px"
               }}
-              labelStyle={{ color: "#e2e8f0", fontWeight: 600, marginBottom: 4 }}
+              labelStyle={{ color: "var(--ink)", fontWeight: 600, marginBottom: 4 }}
               formatter={(v, name) => [v.toFixed(2), name]} />
             <Line
               type="monotone"
               dataKey="World"
               name="MSCI World"
-              stroke="#10B981"
+              stroke="var(--serie-1)"
               strokeWidth={2.5}
               dot={false}
               activeDot={{ r: 4 }} />
@@ -409,7 +409,7 @@ export function ComparisonChart({ data, range, onRange }) {
               type="monotone"
               dataKey="Emerging"
               name="MSCI Emerging"
-              stroke="#60A5FA"
+              stroke="var(--serie-2)"
               strokeWidth={2.5}
               dot={false}
               activeDot={{ r: 4 }} />
@@ -424,8 +424,8 @@ export function LegendDot({ color, label, value }) {
   return (
     <span className="inline-flex items-center gap-2">
       <span className="h-2 w-2 rounded-full" style={{ background: color }}></span>
-      <span className="text-slate-300">{label}</span>
-      <span className="font-mono text-slate-500">{value}</span>
+      <span className="text-ink">{label}</span>
+      <span className="font-mono text-muted">{value}</span>
     </span>
   );
 }
@@ -433,22 +433,22 @@ export function LegendDot({ color, label, value }) {
 // ---------- Watchlist ----------
 export function Watchlist({ rows }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur overflow-hidden">
+    <div className="rounded-2xl border border-rule bg-card backdrop-blur overflow-hidden">
       <div className="flex flex-wrap items-start justify-between gap-3 p-6 pb-4">
         <div>
-          <h2 className="text-base font-semibold text-white">Fondos constantes · Watchlist</h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-base font-semibold text-ink">Fondos constantes · Watchlist</h2>
+          <p className="text-xs text-muted mt-1">
             Fondos indexados de referencia que sigo para comparar. No los tengo en cartera.
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-[11px] text-slate-300">
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-rule bg-rule-soft px-2.5 py-1 text-[11px] text-ink">
           <lucide.Eye size={12} /> Solo seguimiento
         </span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-y border-slate-800">
+            <tr className="text-[10px] uppercase tracking-wider text-muted border-y border-rule">
               <th className="text-left font-medium px-6 py-2.5">Fondo</th>
               <th className="text-left font-medium px-3 py-2.5">ISIN</th>
               <th className="text-left font-medium px-3 py-2.5">Categoría</th>
@@ -464,17 +464,17 @@ export function Watchlist({ rows }) {
           </thead>
           <tbody>
             {rows.map((f) => (
-              <tr key={f.isin} className="border-b border-slate-800/70 last:border-b-0 hover:bg-slate-800/30 transition">
+              <tr key={f.isin} className="border-b border-rule last:border-b-0 hover:bg-rule-soft transition">
                 <td className="px-6 py-3.5">
-                  <div className="font-medium text-white">{f.name}</div>
+                  <div className="font-medium text-ink">{f.name}</div>
                 </td>
-                <td className="px-3 py-3.5 font-mono text-xs text-slate-400">{f.isin}</td>
+                <td className="px-3 py-3.5 font-mono text-xs text-muted">{f.isin}</td>
                 <td className="px-3 py-3.5">
-                  <span className="inline-block rounded-md bg-slate-800 px-2 py-0.5 text-[11px] text-slate-300">
+                  <span className="inline-block rounded-md bg-rule-soft px-2 py-0.5 text-[11px] text-ink">
                     {f.cat}
                   </span>
                 </td>
-                <td className="px-3 py-3.5 text-right font-mono text-slate-200">{f.ter.toFixed(2)}%</td>
+                <td className="px-3 py-3.5 text-right font-mono text-ink">{f.ter.toFixed(2)}%</td>
                 <ReturnCell v={f.r1} />
                 <ReturnCell v={f.r3} />
                 <ReturnCell v={f.r5} pad />
@@ -490,7 +490,7 @@ export function Watchlist({ rows }) {
 export function ReturnCell({ v, pad }) {
   const positive = v >= 0;
   return (
-    <td className={`py-3.5 text-right font-mono ${pad ? "px-6" : "px-3"} ${positive ? "text-emerald-400" : "text-red-400"}`}>
+    <td className={`py-3.5 text-right font-mono ${pad ? "px-6" : "px-3"} ${positive ? "text-pos" : "text-neg"}`}>
       {pct(v, 1)}
     </td>
   );
@@ -499,16 +499,16 @@ export function ReturnCell({ v, pad }) {
 // ---------- Estado de error (UI del hook useMarketData) ----------
 export function ErrorState({ message, onRetry }) {
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-6">
-      <div className="max-w-md w-full rounded-2xl border border-red-500/30 bg-red-500/5 p-6 text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 border border-red-500/30 text-red-400">
+    <div className="min-h-screen bg-field flex items-center justify-center px-6">
+      <div className="max-w-md w-full rounded-2xl border border-neg bg-neg-bg p-6 text-center">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neg-bg border border-neg text-neg">
           <lucide.Info size={22} />
         </div>
-        <h2 className="text-base font-semibold text-white">No se pudieron cargar los datos</h2>
-        <p className="text-sm text-slate-400 mt-2 font-mono break-all">{message}</p>
+        <h2 className="text-base font-semibold text-ink">No se pudieron cargar los datos</h2>
+        <p className="text-sm text-muted mt-2 font-mono break-all">{message}</p>
         <button
           onClick={onRetry}
-          className="mt-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 transition px-4 py-2 text-sm font-semibold text-slate-950">
+          className="mt-4 rounded-lg bg-accent hover:shadow-glow transition px-4 py-2 text-sm font-semibold text-accent-text">
           Reintentar
         </button>
       </div>

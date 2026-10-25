@@ -45,7 +45,7 @@ export function projectGrowth({ initial, monthly, years, annualRate }) {
 export function NumberInput({ label, value, onChange, suffix, min = 0, max = 999_999, step = 1, tip }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-[11px] uppercase tracking-wider text-slate-400 flex items-center">
+      <span className="text-[11px] uppercase tracking-wider text-muted flex items-center">
         {label} {tip && <InfoTip termKey={tip} />}
       </span>
       <div className="relative">
@@ -60,10 +60,10 @@ export function NumberInput({ label, value, onChange, suffix, min = 0, max = 999
             const v = e.target.value === "" ? 0 : Number(e.target.value);
             if (!Number.isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
           }}
-          className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2.5 pr-10 text-base font-mono font-semibold text-white focus:border-emerald-500/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
+          className="w-full rounded-lg border border-rule bg-card px-3 py-2.5 pr-10 text-base font-mono font-semibold text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent transition"
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-mono pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted font-mono pointer-events-none">
             {suffix}
           </span>
         )}
@@ -77,8 +77,8 @@ export function YearsSlider({ value, onChange }) {
   return (
     <label className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] uppercase tracking-wider text-slate-400">Años a invertir</span>
-        <span className="font-mono text-base font-semibold text-white">{value}<span className="text-xs text-slate-500 ml-1">años</span></span>
+        <span className="text-[11px] uppercase tracking-wider text-muted">Años a invertir</span>
+        <span className="font-mono text-base font-semibold text-ink">{value}<span className="text-xs text-muted ml-1">años</span></span>
       </div>
       <input
         type="range"
@@ -87,9 +87,9 @@ export function YearsSlider({ value, onChange }) {
         step={1}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-emerald-500"
+        className="w-full accent-serie-1"
       />
-      <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+      <div className="flex justify-between text-[10px] text-muted font-mono">
         <span>1A</span><span>10A</span><span>20A</span><span>30A</span><span>40A</span>
       </div>
     </label>
@@ -107,29 +107,29 @@ export function AllocationSliders({ worldPct, onWorldChange, cagrW, cagrE }) {
     { label: "0/100", v: 0 },
   ];
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+    <div className="flex flex-col gap-3 rounded-xl border border-rule bg-card p-4">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] uppercase tracking-wider text-slate-400">
+        <span className="text-[11px] uppercase tracking-wider text-muted">
           Mix de cartera
         </span>
-        <span className="text-[10px] font-mono text-slate-500">
-          Ponderado: <span className="text-emerald-300 font-semibold">{(blended * 100).toFixed(2)}%</span> anual
+        <span className="text-[10px] font-mono text-muted">
+          Ponderado: <span className="text-pos font-semibold">{(blended * 100).toFixed(2)}%</span> anual
         </span>
       </div>
 
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
-        <div className="h-full bg-emerald-500/80 transition-all" style={{ width: `${worldPct}%` }}></div>
-        <div className="h-full bg-sky-500/80 transition-all" style={{ width: `${emPct}%` }}></div>
+      <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-rule-soft">
+        <div className="h-full rounded-l-full bg-serie-1 transition-all" style={{ width: `${worldPct}%` }}></div>
+        <div className="h-full rounded-r-full bg-serie-2 transition-all" style={{ width: `${emPct}%` }}></div>
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-ink">
+            <span className="h-2 w-2 rounded-full bg-serie-1"></span>
             MSCI World <InfoTip termKey="MSCIWorld" />
           </span>
-          <span className="font-mono text-sm font-semibold text-white">
-            {worldPct}<span className="text-slate-500 text-xs">%</span>
+          <span className="font-mono text-sm font-semibold text-ink">
+            {worldPct}<span className="text-muted text-xs">%</span>
           </span>
         </div>
         <input
@@ -139,21 +139,21 @@ export function AllocationSliders({ worldPct, onWorldChange, cagrW, cagrE }) {
           step={1}
           value={worldPct}
           onChange={(e) => onWorldChange(Number(e.target.value))}
-          className="w-full accent-emerald-500"
+          className="w-full accent-serie-1"
         />
-        <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+        <div className="text-[10px] font-mono text-muted mt-0.5">
           CAGR histórico: {(cagrW * 100).toFixed(2)}%
         </div>
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-sky-300">
-            <span className="h-2 w-2 rounded-full bg-sky-500"></span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-ink">
+            <span className="h-2 w-2 rounded-full bg-serie-2"></span>
             MSCI Emerging <InfoTip termKey="MSCIEM" />
           </span>
-          <span className="font-mono text-sm font-semibold text-white">
-            {emPct}<span className="text-slate-500 text-xs">%</span>
+          <span className="font-mono text-sm font-semibold text-ink">
+            {emPct}<span className="text-muted text-xs">%</span>
           </span>
         </div>
         <input
@@ -163,9 +163,9 @@ export function AllocationSliders({ worldPct, onWorldChange, cagrW, cagrE }) {
           step={1}
           value={emPct}
           onChange={(e) => onWorldChange(100 - Number(e.target.value))}
-          className="w-full accent-sky-500"
+          className="w-full accent-serie-2"
         />
-        <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+        <div className="text-[10px] font-mono text-muted mt-0.5">
           CAGR histórico: {(cagrE * 100).toFixed(2)}%
         </div>
       </div>
@@ -177,8 +177,8 @@ export function AllocationSliders({ worldPct, onWorldChange, cagrW, cagrE }) {
             type="button"
             onClick={() => onWorldChange(p.v)}
             className={`flex-1 rounded-md border px-2 py-1 text-[10px] font-mono font-semibold transition ${worldPct === p.v
-                ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-300"
-                : "border-slate-700 bg-slate-900/40 text-slate-400 hover:text-slate-200"
+                ? "border-accent bg-pos-bg text-pos"
+                : "border-rule bg-card text-muted hover:text-ink"
               }`}
           >
             {p.label}
@@ -194,24 +194,24 @@ export function ResultHero({ invested, balance, gains, years, strategyLabel }) {
   const multiplier = balance / Math.max(invested, 1);
   const positive = gains >= 0;
   return (
-    <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent p-5">
+    <div className="rounded-xl border border-accent bg-gradient-to-br from-pos-bg to-transparent p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-        <div className="text-[10px] uppercase tracking-wider text-emerald-300/80 flex items-center">
+        <div className="text-[10px] uppercase tracking-wider text-pos flex items-center">
           Proyección con interés compuesto
           <InfoTip termKey="Compound" />
         </div>
-        <div className="text-[10px] text-slate-400 font-mono">
+        <div className="text-[10px] text-muted font-mono">
           {strategyLabel} · {years}A
         </div>
       </div>
-      <p className="text-sm leading-relaxed text-slate-200">
-        En <span className="font-semibold text-white">{years} años</span> habrás aportado{" "}
-        <span className="font-mono font-semibold text-white">{eur(invested, 0)}</span>,
+      <p className="text-sm leading-relaxed text-ink">
+        En <span className="font-semibold text-ink">{years} años</span> habrás aportado{" "}
+        <span className="font-mono font-semibold text-ink">{eur(invested, 0)}</span>,
         pero gracias al interés compuesto tendrás{" "}
-        <span className="font-mono font-semibold text-emerald-300 text-base">{eur(balance, 0)}</span>.
+        <span className="font-mono font-semibold text-pos text-base">{eur(balance, 0)}</span>.
         {positive && (
-          <> Eso son <span className="font-mono font-semibold text-emerald-300">{eur(gains, 0)}</span> de
-            ganancias — tu dinero se habrá multiplicado <span className="font-mono font-semibold text-white">×{multiplier.toFixed(2)}</span>. 🚀</>
+          <> Eso son <span className="font-mono font-semibold text-pos">{eur(gains, 0)}</span> de
+            ganancias — tu dinero se habrá multiplicado <span className="font-mono font-semibold text-ink">×{multiplier.toFixed(2)}</span>. 🚀</>
         )}
       </p>
     </div>
@@ -221,10 +221,10 @@ export function ResultHero({ invested, balance, gains, years, strategyLabel }) {
 // ── KPI compacto ────────────────────────────────────────────────────────────
 export function KPI({ label, value, sub, accent }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3.5">
-      <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
-      <div className={`mt-1 text-lg font-semibold font-mono ${accent || "text-white"}`}>{value}</div>
-      {sub && <div className="text-[10px] text-slate-500 font-mono mt-0.5">{sub}</div>}
+    <div className="rounded-lg border border-rule bg-card p-3.5">
+      <div className="text-[10px] uppercase tracking-wider text-muted">{label}</div>
+      <div className={`mt-1 text-lg font-semibold font-mono ${accent || "text-ink"}`}>{value}</div>
+      {sub && <div className="text-[10px] text-muted font-mono mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -237,17 +237,17 @@ export function ScenarioGrid({ initial, monthly, years, baseRate }) {
     { id: "bull", label: "Mercado bueno", desc: "Vientos a favor", rate: baseRate + 0.03, tone: "sky", emoji: "🚀" },
   ];
   const tones = {
-    red: { border: "border-red-500/30", bg: "bg-red-500/5", text: "text-red-300" },
-    emerald: { border: "border-emerald-500/40", bg: "bg-emerald-500/10", text: "text-emerald-300" },
-    sky: { border: "border-sky-500/30", bg: "bg-sky-500/5", text: "text-sky-300" },
+    red: { border: "border-neg", bg: "bg-neg-bg", text: "text-neg" },
+    emerald: { border: "border-accent", bg: "bg-pos-bg", text: "text-pos" },
+    sky: { border: "border-accent", bg: "bg-accent-bg", text: "text-accent" },
   };
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+    <div className="rounded-xl border border-rule bg-field p-4">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="text-[11px] uppercase tracking-wider text-slate-400">
+        <div className="text-[11px] uppercase tracking-wider text-muted">
           Escenarios a {years} años · cómo afecta el mercado
         </div>
-        <span className="text-[10px] text-slate-500 font-mono">El mercado no sube en línea recta. Estas son 3 rutas posibles.</span>
+        <span className="text-[10px] text-muted font-mono">El mercado no sube en línea recta. Estas son 3 rutas posibles.</span>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {scenarios.map((s) => {
@@ -257,13 +257,13 @@ export function ScenarioGrid({ initial, monthly, years, baseRate }) {
           return (
             <div key={s.id} className={`rounded-lg border ${t.border} ${t.bg} p-3`}>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-semibold text-slate-200 flex items-center gap-1">
+                <span className="text-[11px] font-semibold text-ink flex items-center gap-1">
                   <span>{s.emoji}</span> {s.label}
                 </span>
                 <span className={`text-[10px] font-mono ${t.text}`}>{(s.rate * 100).toFixed(1)}%</span>
               </div>
               <div className={`text-xl font-semibold font-mono ${t.text}`}>{eur(proj.balance, 0)}</div>
-              <div className="text-[10px] text-slate-500 font-mono mt-0.5">×{mult.toFixed(2)} · {s.desc}</div>
+              <div className="text-[10px] text-muted font-mono mt-0.5">×{mult.toFixed(2)} · {s.desc}</div>
             </div>
           );
         })}
@@ -285,9 +285,9 @@ export function ScenarioTimeline({ initial, monthly, years, baseRate }) {
   ];
 
   const tones = {
-    red: { dot: "bg-red-500", text: "text-red-300", bg: "bg-red-500/5" },
-    emerald: { dot: "bg-emerald-500", text: "text-emerald-300", bg: "bg-emerald-500/10" },
-    sky: { dot: "bg-sky-500", text: "text-sky-300", bg: "bg-sky-500/5" },
+    red: { dot: "bg-serie-2", text: "text-neg", bg: "bg-neg-bg" },
+    emerald: { dot: "bg-serie-1", text: "text-pos", bg: "bg-pos-bg" },
+    sky: { dot: "bg-serie-3", text: "text-accent", bg: "bg-accent-bg" },
   };
 
   const rows = scenarios.map((s) => {
@@ -304,12 +304,12 @@ export function ScenarioTimeline({ initial, monthly, years, baseRate }) {
   });
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+    <div className="rounded-xl border border-rule bg-field p-4">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="text-[11px] uppercase tracking-wider text-slate-400">
+        <div className="text-[11px] uppercase tracking-wider text-muted">
           Escala temporal · cuánto tendrás en cada hito
         </div>
-        <span className="text-[10px] text-slate-500 font-mono">
+        <span className="text-[10px] text-muted font-mono">
           Hitos cada 5A hasta tu horizonte ({years}A)
         </span>
       </div>
@@ -317,9 +317,9 @@ export function ScenarioTimeline({ initial, monthly, years, baseRate }) {
       <div className="overflow-x-auto -mx-1 px-1">
         <div className="min-w-[460px]">
           <div className="grid gap-1.5" style={{ gridTemplateColumns: `120px repeat(${milestones.length}, minmax(0, 1fr))` }}>
-            <div className="text-[10px] uppercase tracking-wider text-slate-500 self-end pb-1">Escenario</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted self-end pb-1">Escenario</div>
             {milestones.map((y) => (
-              <div key={y} className="text-[10px] font-mono text-slate-500 text-right pr-1 pb-1">
+              <div key={y} className="text-[10px] font-mono text-muted text-right pr-1 pb-1">
                 {y}A
               </div>
             ))}
@@ -329,15 +329,15 @@ export function ScenarioTimeline({ initial, monthly, years, baseRate }) {
                 <React.Fragment key={r.id}>
                   <div className="flex items-center gap-1.5 py-1.5">
                     <span className={`h-2 w-2 rounded-full ${t.dot}`}></span>
-                    <span className="text-[11px] text-slate-200">{r.emoji} {r.label}</span>
-                    <span className="text-[9px] font-mono text-slate-500 ml-auto">{(r.rate * 100).toFixed(1)}%</span>
+                    <span className="text-[11px] text-ink">{r.emoji} {r.label}</span>
+                    <span className="text-[9px] font-mono text-muted ml-auto">{(r.rate * 100).toFixed(1)}%</span>
                   </div>
                   {r.cells.map((c, i) => (
                     <div key={i} className={`rounded-md ${t.bg} px-2 py-1.5 text-right`}>
                       <div className={`text-[12px] font-semibold font-mono ${t.text} leading-tight`}>
                         {eur(c.balance, 0)}
                       </div>
-                      <div className="text-[9px] text-slate-500 font-mono leading-tight">
+                      <div className="text-[9px] text-muted font-mono leading-tight">
                         ×{c.mult.toFixed(2)}
                       </div>
                     </div>
@@ -349,9 +349,9 @@ export function ScenarioTimeline({ initial, monthly, years, baseRate }) {
         </div>
       </div>
 
-      <div className="mt-3 text-[10px] text-slate-500 leading-snug">
+      <div className="mt-3 text-[10px] text-muted leading-snug">
         Cada celda muestra el balance proyectado y el multiplicador sobre lo aportado.
-        El mercado <span className="text-slate-300">no sube en línea recta</span>: la franja entre el escenario malo y bueno es el rango razonable de resultados posibles.
+        El mercado <span className="text-ink">no sube en línea recta</span>: la franja entre el escenario malo y bueno es el rango razonable de resultados posibles.
       </div>
     </div>
   );
@@ -391,18 +391,18 @@ export function InvestmentCalculator({ funds }) {
   }, [initial, monthly, years, blendedRate, proj]);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-6">
+    <div className="rounded-2xl border border-rule bg-card backdrop-blur p-6">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div>
-          <h2 className="text-base font-semibold text-white flex items-center">
+          <h2 className="text-base font-semibold text-ink flex items-center">
             🧮 Calculadora de Interés Compuesto
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted mt-1">
             Proyecta cuánto valdrá tu cartera con aportaciones periódicas, usando la rentabilidad histórica real de tus fondos.
             <InfoTip termKey="DCA" />
           </p>
         </div>
-        <span className="hidden md:inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-[11px] text-emerald-300">
+        <span className="hidden md:inline-flex items-center gap-1.5 rounded-md bg-pos-bg border border-accent px-2.5 py-1 text-[11px] text-pos">
           ⚡ Killer feature
         </span>
       </div>
@@ -447,23 +447,23 @@ export function InvestmentCalculator({ funds }) {
 
           <div className="grid grid-cols-3 gap-2">
             <KPI label="Aportado" value={eur(proj.invested, 0)} sub={`${monthly}€/mes`} />
-            <KPI label="Ganancias" value={eur(proj.gains, 0)} accent="text-emerald-400" sub={pct((proj.gains / Math.max(proj.invested, 1)) * 100, 0)} />
+            <KPI label="Ganancias" value={eur(proj.gains, 0)} accent="text-pos" sub={pct((proj.gains / Math.max(proj.invested, 1)) * 100, 0)} />
             <KPI label="Total final" value={eur(proj.balance, 0)} sub={`${(blendedRate * 100).toFixed(2)}% CAGR ponderado`} />
           </div>
 
           <ScenarioGrid initial={initial} monthly={monthly} years={years} baseRate={blendedRate} />
           <ScenarioTimeline initial={initial} monthly={monthly} years={years} baseRate={blendedRate} />
 
-          <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+          <div className="rounded-lg border border-rule bg-field p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2 px-1">
-              <span className="text-[11px] uppercase tracking-wider text-slate-400">
+              <span className="text-[11px] uppercase tracking-wider text-muted">
                 Evolución mes a mes · abanico de mercado
               </span>
-              <div className="flex items-center gap-3 text-[10px] font-mono text-slate-500">
-                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500"></span>Malo</span>
-                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500"></span>Normal</span>
-                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sky-500"></span>Bueno</span>
-                <span className="inline-flex items-center gap-1"><span className="h-px w-4 bg-slate-500"></span>Aportado</span>
+              <div className="flex items-center gap-3 text-[10px] font-mono text-muted">
+                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-serie-2"></span>Malo</span>
+                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-serie-1"></span>Normal</span>
+                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-serie-3"></span>Bueno</span>
+                <span className="inline-flex items-center gap-1"><span className="h-px w-4 bg-muted"></span>Aportado</span>
               </div>
             </div>
             <div className="h-60">
@@ -471,32 +471,32 @@ export function InvestmentCalculator({ funds }) {
                 <CalcComposed data={fanData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradInvested" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#64748b" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#64748b" stopOpacity={0} />
+                      <stop offset="0%" stopColor="var(--muted)" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="var(--muted)" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gradBase" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10B981" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="0%" stopColor="var(--serie-1)" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="var(--serie-1)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CalcGrid strokeDasharray="2 4" stroke="#1e293b" vertical={false} />
+                  <CalcGrid strokeDasharray="2 4" stroke="var(--rule-soft)" vertical={false} />
                   <CalcXAxis
                     dataKey="year"
-                    tick={{ fill: "#64748b", fontSize: 10 }}
-                    axisLine={{ stroke: "#1e293b" }}
+                    tick={{ fill: "var(--muted)", fontSize: 10 }}
+                    axisLine={{ stroke: "var(--rule-soft)" }}
                     tickLine={false}
                     tickFormatter={(v) => `${v}A`}
                   />
                   <CalcYAxis
-                    tick={{ fill: "#64748b", fontSize: 10 }}
+                    tick={{ fill: "var(--muted)", fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v.toString()}
                   />
                   <CalcTooltip
                     contentStyle={{
-                      background: "#0f172a",
-                      border: "1px solid #334155",
+                      background: "var(--card)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "8px",
                       fontSize: "11px",
                     }}
@@ -507,7 +507,7 @@ export function InvestmentCalculator({ funds }) {
                     type="monotone"
                     dataKey="invested"
                     name="Aportado"
-                    stroke="#94a3b8"
+                    stroke="var(--muted)"
                     strokeWidth={1.2}
                     strokeDasharray="4 4"
                     fill="url(#gradInvested)"
@@ -516,7 +516,7 @@ export function InvestmentCalculator({ funds }) {
                     type="monotone"
                     dataKey="base"
                     name="Mercado normal"
-                    stroke="#10B981"
+                    stroke="var(--serie-1)"
                     strokeWidth={2}
                     fill="url(#gradBase)"
                   />
@@ -524,7 +524,7 @@ export function InvestmentCalculator({ funds }) {
                     type="monotone"
                     dataKey="bear"
                     name="Mercado malo"
-                    stroke="#EF4444"
+                    stroke="var(--serie-2)"
                     strokeWidth={1.5}
                     dot={false}
                     strokeDasharray="5 3"
@@ -533,7 +533,7 @@ export function InvestmentCalculator({ funds }) {
                     type="monotone"
                     dataKey="bull"
                     name="Mercado bueno"
-                    stroke="#0EA5E9"
+                    stroke="var(--serie-3)"
                     strokeWidth={1.5}
                     dot={false}
                     strokeDasharray="5 3"

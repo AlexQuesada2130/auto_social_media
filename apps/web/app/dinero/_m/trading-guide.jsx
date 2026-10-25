@@ -67,23 +67,23 @@ function ArticleCard({ article }) {
       href={article.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition"
+      className="group flex flex-col gap-3 rounded-2xl border border-rule bg-card backdrop-blur p-5 hover:border-accent hover:bg-pos-bg transition"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-block rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+        <span className="inline-block rounded-md bg-rule-soft px-2 py-0.5 text-[10px] font-medium text-muted uppercase tracking-wider">
           {article.source}
         </span>
-        {date && <span className="text-[10px] text-slate-600 font-mono">{date}</span>}
+        {date && <span className="text-[10px] text-muted font-mono">{date}</span>}
       </div>
-      <h3 className="text-sm font-semibold text-white group-hover:text-emerald-300 transition leading-snug line-clamp-2">
+      <h3 className="text-sm font-semibold text-ink group-hover:text-accent transition leading-snug line-clamp-2">
         {article.title}
       </h3>
       {cleanSummary && (
-        <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
+        <p className="text-xs text-muted leading-relaxed line-clamp-3">
           {cleanSummary}
         </p>
       )}
-      <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-medium opacity-0 group-hover:opacity-100 transition mt-auto">
+      <div className="flex items-center gap-1 text-[10px] text-pos font-medium opacity-0 group-hover:opacity-100 transition mt-auto">
         Leer artículo <span>↗</span>
       </div>
     </a>
@@ -134,7 +134,7 @@ const GUIDES = [
 function GuideCard({ guide }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`rounded-2xl border transition ${open ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-slate-800 bg-slate-900/60'}`}>
+    <div className={`rounded-2xl border transition ${open ? 'border-accent bg-pos-bg' : 'border-rule bg-card'}`}>
       <button
         type="button"
         className="w-full flex items-center justify-between gap-4 p-5 text-left"
@@ -142,17 +142,17 @@ function GuideCard({ guide }) {
       >
         <div className="flex items-center gap-3">
           <span className="text-2xl">{guide.icon}</span>
-          <span className="text-sm font-semibold text-white">{guide.title}</span>
+          <span className="text-sm font-semibold text-ink">{guide.title}</span>
         </div>
-        <span className="text-slate-500 transition">{open ? '▲' : '▼'}</span>
+        <span className="text-muted transition">{open ? '▲' : '▼'}</span>
       </button>
       {open && (
-        <div className="px-5 pb-5 border-t border-slate-800">
-          <p className="text-sm text-slate-300 leading-relaxed mt-4">{guide.body}</p>
+        <div className="px-5 pb-5 border-t border-rule">
+          <p className="text-sm text-ink leading-relaxed mt-4">{guide.body}</p>
           <ul className="mt-3 space-y-1">
             {guide.tips.map((t, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-slate-400">
-                <span className="text-emerald-400 mt-0.5 flex-none">✓</span> {t}
+              <li key={i} className="flex items-start gap-2 text-xs text-muted">
+                <span className="text-pos mt-0.5 flex-none">✓</span> {t}
               </li>
             ))}
           </ul>
@@ -178,26 +178,26 @@ export function TradingGuide() {
   });
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-6">
+    <div className="rounded-2xl border border-rule bg-card backdrop-blur p-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
+          <h2 className="text-base font-semibold text-ink flex items-center gap-2">
             📚 Aprende a Invertir
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted mt-1">
             Guías en español para inversores indexados + últimas noticias de mercado.
           </p>
         </div>
         {/* Tabs */}
-        <div className="flex rounded-lg border border-slate-700 bg-slate-900 p-0.5">
+        <div className="flex rounded-lg border border-rule bg-card p-0.5">
           {[{ id: 'guia', label: '📖 Guía' }, { id: 'noticias', label: '📰 Noticias' }].map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
-                activeTab === tab.id ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'
+                activeTab === tab.id ? 'bg-rule text-ink' : 'text-muted hover:text-ink'
               }`}
             >
               {tab.label}
@@ -223,8 +223,8 @@ export function TradingGuide() {
                 onClick={() => setActiveCategory(c.id)}
                 className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
                   activeCategory === c.id
-                    ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-300'
-                    : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:text-slate-200'
+                    ? 'border-accent bg-pos-bg text-pos'
+                    : 'border-rule bg-card text-muted hover:text-ink'
                 }`}
               >
                 {c.label}
@@ -233,14 +233,14 @@ export function TradingGuide() {
           </div>
 
           {loading && (
-            <div className="flex items-center justify-center py-12 text-slate-500 text-sm">
-              <div className="animate-spin mr-3 h-4 w-4 rounded-full border-2 border-emerald-500 border-t-transparent"></div>
+            <div className="flex items-center justify-center py-12 text-muted text-sm">
+              <div className="animate-spin mr-3 h-4 w-4 rounded-full border-2 border-accent border-t-transparent"></div>
               Obteniendo noticias…
             </div>
           )}
 
           {error && (
-            <div className="text-center py-8 text-red-400 text-sm">
+            <div className="text-center py-8 text-neg text-sm">
               Error cargando noticias: {error}
             </div>
           )}
@@ -249,7 +249,7 @@ export function TradingGuide() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredArticles.length > 0
                 ? filteredArticles.map((a, i) => <ArticleCard key={`${a.link}-${i}`} article={a} />)
-                : <div className="col-span-full text-center py-8 text-slate-500 text-sm">Sin artículos para este filtro.</div>
+                : <div className="col-span-full text-center py-8 text-muted text-sm">Sin artículos para este filtro.</div>
               }
             </div>
           )}

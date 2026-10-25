@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { eur, lucide } from './components';
 import { SummaryCard } from './portfolio-tracker';
@@ -34,7 +34,7 @@ function sumBy(list, type) {
 }
 
 const fieldCls =
-  "rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-500 focus:outline-none";
+  "rounded-lg border border-rule bg-field px-3 py-2 text-sm text-ink placeholder-faint focus:border-accent focus:outline-none";
 
 // ── Formulario alta / edición ─────────────────────────────────────────────
 function TransactionForm({ initial, onSave, onCancel }) {
@@ -61,8 +61,8 @@ function TransactionForm({ initial, onSave, onCancel }) {
   };
 
   return (
-    <form onSubmit={submit} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-3">
-      <div className="flex gap-1 rounded-lg bg-slate-900 p-1 w-fit">
+    <form onSubmit={submit} className="rounded-xl border border-rule bg-field p-4 space-y-3">
+      <div className="flex gap-1 rounded-lg bg-card p-1 w-fit">
         {[['expense', 'Gasto'], ['income', 'Ingreso']].map(([t, label]) => (
           <button
             key={t}
@@ -70,8 +70,8 @@ function TransactionForm({ initial, onSave, onCancel }) {
             onClick={() => switchType(t)}
             className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
               type === t
-                ? t === 'expense' ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300'
-                : 'text-slate-400 hover:text-white'
+                ? t === 'expense' ? 'bg-neg-bg text-neg' : 'bg-pos-bg text-pos'
+                : 'text-muted hover:text-ink'
             }`}>
             {label}
           </button>
@@ -86,11 +86,11 @@ function TransactionForm({ initial, onSave, onCancel }) {
         <input placeholder="Nota (opcional)" value={note} onChange={(e) => setNote(e.target.value)} className={fieldCls} />
       </div>
       <div className="flex gap-2">
-        <button type="submit" disabled={!valid} className="rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 transition px-4 py-1.5 text-xs font-semibold text-slate-950">
+        <button type="submit" disabled={!valid} className="rounded-lg bg-accent hover:shadow-glow disabled:opacity-40 transition px-4 py-1.5 text-xs font-semibold text-accent-text">
           {initial ? 'Guardar cambios' : 'Añadir'}
         </button>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-white">
+          <button type="button" onClick={onCancel} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-ink">
             Cancelar
           </button>
         )}
@@ -123,40 +123,40 @@ function CategoryBreakdown({ monthTx, budgets, setBudgets }) {
   const unbudgeted = EXPENSE_CATEGORIES.filter((c) => !rows.some((r) => r.category === c));
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+    <div className="rounded-2xl border border-rule bg-card p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-white">Gasto por categoría</h3>
+        <h3 className="text-sm font-semibold text-ink">Gasto por categoría</h3>
         {unbudgeted.length > 0 && (
           <select
             value=""
             onChange={(e) => e.target.value && setEditing(e.target.value)}
-            className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[11px] text-slate-400">
+            className="rounded-md border border-rule bg-field px-2 py-1 text-[11px] text-muted">
             <option value="">+ Presupuesto</option>
             {unbudgeted.map((c) => <option key={c}>{c}</option>)}
           </select>
         )}
       </div>
-      {rows.length === 0 && !editing && <p className="text-xs text-slate-500">Sin gastos este mes.</p>}
+      {rows.length === 0 && !editing && <p className="text-xs text-muted">Sin gastos este mes.</p>}
       <div className="space-y-3">
         {[...rows, ...(editing && !rows.some((r) => r.category === editing) ? [{ category: editing, spent: 0, budget: 0 }] : [])].map((r) => {
           const over = r.budget > 0 && r.spent > r.budget;
           return (
             <div key={r.category}>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-slate-300">{r.category}</span>
+                <span className="text-ink">{r.category}</span>
                 {editing === r.category ? (
                   <form onSubmit={(e) => { e.preventDefault(); saveBudget(r.category, e.target.budget.value); }} className="flex items-center gap-1">
-                    <input name="budget" autoFocus defaultValue={r.budget || ''} placeholder="Límite €" inputMode="decimal" className="w-20 rounded border border-slate-700 bg-slate-950 px-1.5 py-0.5 text-[11px] font-mono text-white" onBlur={(e) => saveBudget(r.category, e.target.value)} />
+                    <input name="budget" autoFocus defaultValue={r.budget || ''} placeholder="Límite €" inputMode="decimal" className="w-20 rounded border border-rule bg-field px-1.5 py-0.5 text-[11px] font-mono text-ink" onBlur={(e) => saveBudget(r.category, e.target.value)} />
                   </form>
                 ) : (
-                  <button onClick={() => setEditing(r.category)} className={`font-mono ${over ? 'text-red-400' : 'text-slate-400'} hover:text-white`} title="Editar presupuesto">
-                    {eur(r.spent, 0)}{r.budget > 0 && <span className="text-slate-600"> / {eur(r.budget, 0)}</span>}
+                  <button onClick={() => setEditing(r.category)} className={`font-mono ${over ? 'text-neg' : 'text-muted'} hover:text-ink`} title="Editar presupuesto">
+                    {eur(r.spent, 0)}{r.budget > 0 && <span className="text-muted"> / {eur(r.budget, 0)}</span>}
                   </button>
                 )}
               </div>
-              <div className="relative h-2 rounded-full bg-slate-800 overflow-hidden">
-                <div className={`absolute inset-y-0 left-0 rounded-full ${over ? 'bg-red-500' : 'bg-emerald-500/80'}`} style={{ width: `${(r.spent / max) * 100}%` }} />
-                {r.budget > 0 && <div className="absolute inset-y-0 w-0.5 bg-white/60" style={{ left: `${(r.budget / max) * 100}%` }} />}
+              <div className="relative h-2 rounded-full bg-rule-soft overflow-hidden">
+                <div className={`absolute inset-y-0 left-0 rounded-full ${over ? 'bg-neg' : 'bg-pos'}`} style={{ width: `${(r.spent / max) * 100}%` }} />
+                {r.budget > 0 && <div className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${(r.budget / max) * 100}%` }} />}
               </div>
             </div>
           );
@@ -177,21 +177,22 @@ function MonthlyTrend({ transactions, endMonth }) {
   }, [transactions, endMonth]);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
-      <h3 className="text-sm font-semibold text-white mb-4">Últimos 6 meses</h3>
+    <div className="rounded-2xl border border-rule bg-card p-5">
+      <h3 className="text-sm font-semibold text-ink mb-4">Últimos 6 meses</h3>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} barGap={2}>
-            <CartesianGrid stroke="#1e293b" vertical={false} />
-            <XAxis dataKey="mes" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-            <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} width={48} tickFormatter={(v) => (v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : v)} />
+            <CartesianGrid stroke="var(--rule-soft)" vertical={false} />
+            <XAxis dataKey="mes" stroke="var(--muted)" fontSize={11} tickLine={false} axisLine={false} />
+            <YAxis stroke="var(--muted)" fontSize={11} tickLine={false} axisLine={false} width={48} tickFormatter={(v) => (v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : v)} />
             <RTooltip
               cursor={{ fill: 'rgba(148,163,184,0.08)' }}
-              contentStyle={{ background: '#020617', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }}
+              contentStyle={{ background: "var(--card)", border: '1px solid var(--rule)', borderRadius: 8, fontSize: 12 }}
               formatter={(v) => eur(v, 0)}
             />
-            <Bar dataKey="Ingresos" fill="#34d399" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Gastos" fill="#f87171" radius={[4, 4, 0, 0]} />
+            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: "var(--muted)" }} />
+            <Bar dataKey="Ingresos" fill="var(--serie-1)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Gastos" fill="var(--serie-2)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -226,16 +227,16 @@ export function MoneyManager() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button onClick={() => setMonth((m) => shiftMonth(m, -1))} className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:text-white" aria-label="Mes anterior">
+          <button onClick={() => setMonth((m) => shiftMonth(m, -1))} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes anterior">
             <lucide.ChevronLeft size={16} />
           </button>
-          <h2 className="min-w-[10rem] text-center text-base font-semibold text-white">{monthLabel(month)}</h2>
-          <button onClick={() => setMonth((m) => shiftMonth(m, 1))} className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:text-white" aria-label="Mes siguiente">
+          <h2 className="min-w-[10rem] text-center text-base font-semibold text-ink">{monthLabel(month)}</h2>
+          <button onClick={() => setMonth((m) => shiftMonth(m, 1))} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes siguiente">
             <lucide.ChevronRight size={16} />
           </button>
         </div>
         {month !== monthKey(todayISO()) && (
-          <button onClick={() => setMonth(monthKey(todayISO()))} className="text-xs text-slate-400 hover:text-white">Volver a este mes</button>
+          <button onClick={() => setMonth(monthKey(todayISO()))} className="text-xs text-muted hover:text-ink">Volver a este mes</button>
         )}
       </div>
 
@@ -247,13 +248,13 @@ export function MoneyManager() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <div className="xl:col-span-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-white">Movimientos</h3>
+        <div className="xl:col-span-3 rounded-2xl border border-rule bg-card p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-ink">Movimientos</h3>
           <TransactionForm onSave={upsert} />
           {monthTx.length === 0 ? (
-            <p className="text-xs text-slate-500 py-4 text-center">Todavía no hay movimientos en {monthLabel(month).toLowerCase()}.</p>
+            <p className="text-xs text-muted py-4 text-center">Todavía no hay movimientos en {monthLabel(month).toLowerCase()}.</p>
           ) : (
-            <ul className="divide-y divide-slate-800/80">
+            <ul className="divide-y divide-rule">
               {monthTx.map((t) =>
                 editingId === t.id ? (
                   <li key={t.id} className="py-3">
@@ -261,17 +262,17 @@ export function MoneyManager() {
                   </li>
                 ) : (
                   <li key={t.id} className="group flex items-center gap-3 py-2.5">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${t.type === 'income' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${t.type === 'income' ? 'bg-pos' : 'bg-neg'}`} />
                     <button onClick={() => setEditingId(t.id)} className="flex-1 min-w-0 text-left">
-                      <div className="text-sm text-slate-200 truncate">{t.note || t.category}</div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-sm text-ink truncate">{t.note || t.category}</div>
+                      <div className="text-[11px] text-muted">
                         {t.category} · {new Date(t.date + 'T00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                       </div>
                     </button>
-                    <span className={`font-mono text-sm ${t.type === 'income' ? 'text-emerald-400' : 'text-slate-200'}`}>
+                    <span className={`font-mono text-sm ${t.type === 'income' ? 'text-pos' : 'text-ink'}`}>
                       {t.type === 'income' ? '+' : '−'}{eur(t.amount)}
                     </span>
-                    <button onClick={() => remove(t.id)} className="text-slate-600 opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-red-400 transition" aria-label="Borrar movimiento">
+                    <button onClick={() => remove(t.id)} className="text-muted opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-neg transition" aria-label="Borrar movimiento">
                       <lucide.Trash size={14} />
                     </button>
                   </li>

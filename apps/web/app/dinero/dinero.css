@@ -3,8 +3,8 @@
 
 /* El reset mínimo que Tailwind da por hecho, solo dentro de #dinero. */
 #dinero {
-  background: #000;
-  color: #f1f5f9;
+  background: var(--paper);
+  color: var(--ink);
   min-height: 100vh;
   margin-inline: -16px; /* body de la Mesa lleva 16px de margen lateral */
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -13,7 +13,7 @@
   box-sizing: border-box;
   border-width: 0;
   border-style: solid;
-  border-color: #334155;
+  border-color: var(--rule);
 }
 #dinero h1, #dinero h2, #dinero h3, #dinero h4, #dinero p, #dinero ul, #dinero ol, #dinero figure {
   margin: 0;
@@ -35,3 +35,10 @@
 #dinero input[class], #dinero select[class], #dinero textarea[class] { font-size: 16px; }
 #dinero .font-mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
 #dinero svg { display: inline; }
+
+/* Gráficos: el texto de ejes, leyendas y tooltips sigue al tema. */
+#dinero .recharts-cartesian-axis-tick-value { fill: var(--muted); }
+#dinero .recharts-cartesian-grid line { stroke: var(--rule-soft); }
+#dinero .recharts-default-tooltip { color: var(--ink); box-shadow: 0 4px 16px rgb(0 0 0 / 0.12); }
+#dinero .recharts-tooltip-label { color: var(--ink); }
+#dinero .recharts-legend-item-text { color: var(--muted) !important; }

@@ -17,6 +17,16 @@
   --off-bg: #e9e5ef;
   --field: #faf8fd;
   --avatar: #4c1d95;
+  /* Dinero: verde y rojo solo donde significan ganar y perder. */
+  --pos: #13703a;
+  --pos-bg: #e3f4e9;
+  --neg: #c2253a;
+  --neg-bg: #fbe7ea;
+  --warn: #9a5b00;
+  --warn-bg: #fdf1dc;
+  /* Series de gráficos, en este orden y sin ciclar (validado para daltonismo). */
+  --serie-1: #2a78d6; --serie-2: #eb6834; --serie-3: #1baf7a; --serie-4: #eda100;
+  --serie-5: #e87ba4; --serie-6: #008300; --serie-7: #4a3aa7; --serie-8: #e34948;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,6 +50,14 @@
     --off-bg: #1c1729;
     --field: #1a1528;
     --avatar: #5b21b6;
+    --pos: #4ade80;
+    --pos-bg: #0f2a1c;
+    --neg: #f87185;
+    --neg-bg: #2d1219;
+    --warn: #fbbf24;
+    --warn-bg: #2b2010;
+    --serie-1: #3987e5; --serie-2: #d95926; --serie-3: #199e70; --serie-4: #c98500;
+    --serie-5: #d55181; --serie-6: #008300; --serie-7: #9085e9; --serie-8: #e66767;
   }
 }
 

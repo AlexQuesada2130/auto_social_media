@@ -111,7 +111,7 @@ export const YAHOO_API_MOCK = {
 const HOLDINGS_META = {
   "0P0000WAHE.IR": {
     held: 184.527, avgCost: 12.84,
-    color: "#10B981", id: "world",
+    color: "var(--serie-1)", id: "world",
     topRegions: [
       { name: "EE.UU.", w: 71.2 },
       { name: "Japón", w: 5.8 },
@@ -122,7 +122,7 @@ const HOLDINGS_META = {
   },
   "0P00018PHQ.IR": {
     held: 96.214, avgCost: 11.92,
-    color: "#60A5FA", id: "em",
+    color: "var(--serie-2)", id: "em",
     topRegions: [
       { name: "China", w: 27.4 },
       { name: "India", w: 18.1 },
