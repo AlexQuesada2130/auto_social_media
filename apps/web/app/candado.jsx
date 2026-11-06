@@ -16,6 +16,7 @@ import {
   datosFaceId, ponerFaceId, quitarFaceId, borrarBoveda, datosVacios,
 } from "@/lib/boveda";
 import { disponible, activar, desbloquear, olvidarAntiguo } from "./faceid";
+import NavGlobal from "./nav-global";
 
 const Contexto = createContext(null);
 
@@ -191,7 +192,7 @@ export default function Candado({ children }) {
       />
     );
   }
-  return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
+  return <Contexto.Provider value={valor}><NavGlobal onBloquear={cerrar} />{children}</Contexto.Provider>;
 }
 
 function Puerta({ onEntrar, onCara }) {

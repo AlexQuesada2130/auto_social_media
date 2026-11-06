@@ -400,7 +400,7 @@ input, textarea, select { font-size: max(16px, var(--t-cuerpo)); }
 
 /* La cabecera se queda arriba al desplazar, como la barra de título de una app. */
 .masthead {
-  position: sticky; top: 0; z-index: 10;
+  position: sticky; top: var(--navg-alto); z-index: 10;
   background: var(--paper);
   padding-top: 10px;
   margin-inline: calc(-1 * var(--gutter));
@@ -410,7 +410,7 @@ input, textarea, select { font-size: max(16px, var(--t-cuerpo)); }
 /* Las pestañas viajan pegadas debajo de la cabecera. */
 .tabs {
   position: sticky; z-index: 9;
-  top: 62px;
+  top: calc(62px + var(--navg-alto));
   background: var(--paper);
   margin-inline: calc(-1 * var(--gutter));
   padding-inline: var(--gutter);
@@ -854,3 +854,22 @@ body { padding-inline: var(--lado); }
 
 .estado-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
 .estado-acciones .btn { flex: 1 1 auto; justify-content: center; }
+
+/* ── Navegación global (app/nav-global.jsx) ───────────────────────────── */
+:root { --navg-alto: calc(58px + env(safe-area-inset-top, 0px)); }
+.navg {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; justify-content: center; gap: 2px;
+  margin-inline: -16px; padding: env(safe-area-inset-top, 0px) 8px 0;
+  height: var(--navg-alto);
+  background: var(--paper); border-bottom: 1px solid var(--rule);
+}
+.navg-enlace {
+  appearance: none; background: none; border: 0; cursor: pointer; font: inherit;
+  flex: 0 1 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: 56px; color: var(--muted); text-decoration: none; font-size: var(--t-micro);
+}
+.navg-enlace.viva { color: var(--accent); font-weight: 700; }
+.navg-enlace:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.navg-candado { margin-left: 8px; }
+@media (max-width: 380px) { .navg-enlace span { display: none; } }

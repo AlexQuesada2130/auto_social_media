@@ -1,0 +1,46 @@
+@tailwind components;
+@tailwind utilities;
+
+/* El reset mínimo que Tailwind da por hecho, solo dentro de #finanzas. */
+#finanzas {
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  margin-inline: -16px; /* body de la Mesa lleva 16px de margen lateral */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+#finanzas *, #finanzas ::before, #finanzas ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: var(--rule);
+}
+#finanzas h1, #finanzas h2, #finanzas h3, #finanzas h4, #finanzas p, #finanzas ul, #finanzas ol, #finanzas figure {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+#finanzas ul, #finanzas ol { list-style: none; padding: 0; }
+#finanzas button {
+  background: transparent; color: inherit; font: inherit; padding: 0; margin: 0;
+  cursor: pointer; text-align: inherit;
+}
+#finanzas a { color: inherit; text-decoration: inherit; }
+/* La Mesa da estilo a todos los input/textarea; aquí mandan las utilidades. */
+#finanzas input, #finanzas select, #finanzas textarea {
+  width: auto; border-radius: 0; padding: 0; resize: none; margin: 0;
+  color: inherit; font-family: inherit; line-height: inherit;
+}
+/* iOS hace zoom al enfocar campos de menos de 16px. */
+#finanzas input[class], #finanzas select[class], #finanzas textarea[class] { font-size: 16px; }
+/* Cifras como en la Mesa: la letra del sistema con números tabulares, que
+   alinean en columna sin necesidad de una monoespaciada. */
+#finanzas .font-mono { font-family: inherit; font-variant-numeric: tabular-nums; }
+#finanzas svg { display: inline; }
+
+/* Gráficos: el texto de ejes, leyendas y tooltips sigue al tema. */
+#finanzas .recharts-cartesian-axis-tick-value { fill: var(--muted); }
+#finanzas .recharts-cartesian-grid line { stroke: var(--rule-soft); }
+#finanzas .recharts-default-tooltip { color: var(--ink); box-shadow: 0 4px 16px rgb(0 0 0 / 0.12); }
+#finanzas .recharts-tooltip-label { color: var(--ink); }
+#finanzas .recharts-legend-item-text { color: var(--muted) !important; }

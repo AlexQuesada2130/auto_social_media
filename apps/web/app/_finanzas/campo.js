@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useCandado } from "../../candado";
+import { useCandado } from "../candado";
 
 // Un campo de la bóveda como si fuera un useState: [valor, setValor].
 export function useVaultField(campo, porDefecto) {

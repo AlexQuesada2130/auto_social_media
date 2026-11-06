@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { partirPorPliegue, revisar, LIMITE_CARACTERES, URL_COMPOSITOR, MOTIVOS_DESCARTE, tituloDe, diasParado, DIAS_PARA_AVISAR } from "@mesa/shared";
-import Link from "next/link";
 import Estado from "../estado";
 import Resultados from "../resultados";
 import Nav from "../nav";
@@ -110,7 +109,6 @@ export default function Pagina() {
         <div className="tally">
           <span><b>{nPend}</b> pendientes</span>
           <span><b>{nApro}</b> aprobados</span>
-          <Link href="/" className="btn ghost estado-boton">Panel</Link>
         </div>
       </header>
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { lucide } from './components';
-import { useCandado } from '../../candado';
+import { useCandado } from '../candado';
 import { copiaCifrada, esCopiaCifrada, abrirCopia, descargar, datosVacios } from '@/lib/boveda';
 
 const hoy = () => new Date().toISOString().slice(0, 10);

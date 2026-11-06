@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  // Solo la sección de dinero usa Tailwind. Sin preflight, para no tocar los
-  // estilos de la Mesa, y con todo colgando de #dinero para no chocar con sus
-  // clases globales (.card, .btn, .panel…).
-  content: ["./app/dinero/**/*.{js,jsx}"],
-  important: "#dinero",
+  // Solo las secciones de finanzas (inversiones, gastos, cripto) usan
+  // Tailwind. Sin preflight, para no tocar los estilos de la Mesa, y con todo
+  // colgando de #finanzas para no chocar con sus clases globales.
+  content: ["./app/_finanzas/**/*.{js,jsx}", "./app/{inversiones,gastos,cripto}/**/*.{js,jsx}"],
+  important: "#finanzas",
   corePlugins: { preflight: false },
   theme: {
     extend: {
