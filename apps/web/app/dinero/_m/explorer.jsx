@@ -68,7 +68,7 @@ export function FundRow({ fund, active, onToggle, isCore, bloqueado }) {
   const first = fund.series[0].nav;
   const cagr = (Math.pow(last / first, 1 / 5) - 1) * 100;
   const riskColors = {
-    Bajo: "bg-pos-bg text-pos border-accent",
+    Bajo: "bg-pos-bg text-pos border-pos",
     Medio: "bg-warn-bg text-warn border-warn",
     Alto: "bg-neg-bg text-neg border-neg",
   };
@@ -240,7 +240,7 @@ export function FundsExplorer({ funds }) {
             href="https://www.morningstar.es/es/screener/fund.aspx"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 rounded-lg border border-accent bg-pos-bg hover:bg-pos-bg hover:border-accent px-3 py-2.5 text-xs font-medium text-pos transition flex items-center justify-center gap-2 group"
+            className="mt-1 rounded-lg border border-accent bg-accent-bg hover:bg-accent-bg hover:border-accent px-3 py-2.5 text-xs font-medium text-accent transition flex items-center justify-center gap-2 group"
           >
             <span>🔎 Explorar más fondos en Morningstar</span>
             <span className="text-[10px] opacity-60 group-hover:opacity-100 transition">↗</span>

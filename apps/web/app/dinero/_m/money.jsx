@@ -155,7 +155,7 @@ function CategoryBreakdown({ monthTx, budgets, setBudgets }) {
                 )}
               </div>
               <div className="relative h-2 rounded-full bg-rule-soft overflow-hidden">
-                <div className={`absolute inset-y-0 left-0 rounded-full ${over ? 'bg-neg' : 'bg-pos'}`} style={{ width: `${(r.spent / max) * 100}%` }} />
+                <div className={`absolute inset-y-0 left-0 rounded-full ${over ? 'bg-neg' : 'bg-accent'}`} style={{ width: `${(r.spent / max) * 100}%` }} />
                 {r.budget > 0 && <div className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${(r.budget / max) * 100}%` }} />}
               </div>
             </div>

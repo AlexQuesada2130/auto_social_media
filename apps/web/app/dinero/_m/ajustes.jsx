@@ -183,7 +183,7 @@ export function AjustesDinero({ onCerrar }) {
           <h2 className="text-base font-semibold text-ink flex items-center gap-2"><lucide.Settings size={16} /> Ajustes del dinero</h2>
           <button onClick={onCerrar} className="text-muted hover:text-ink" aria-label="Cerrar"><lucide.X size={18} /></button>
         </div>
-        <div className="rounded-xl border border-accent bg-pos-bg p-3 text-xs text-pos flex gap-2">
+        <div className="rounded-xl border border-accent bg-accent-bg p-3 text-xs text-accent flex gap-2">
           <lucide.ShieldCheck size={14} className="shrink-0 mt-0.5" />
           <span>Cifrado con AES-256 y guardado solo en este dispositivo. No se envía al servidor. El móvil y el ordenador tienen cada uno el suyo: para pasar datos, exporta e importa una copia.</span>
         </div>

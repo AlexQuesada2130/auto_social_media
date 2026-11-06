@@ -24,9 +24,6 @@
   --neg-bg: #fbe7ea;
   --warn: #9a5b00;
   --warn-bg: #fdf1dc;
-  /* Series de gráficos, en este orden y sin ciclar (validado para daltonismo). */
-  --serie-1: #2a78d6; --serie-2: #eb6834; --serie-3: #1baf7a; --serie-4: #eda100;
-  --serie-5: #e87ba4; --serie-6: #008300; --serie-7: #4a3aa7; --serie-8: #e34948;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -56,8 +53,6 @@
     --neg-bg: #2d1219;
     --warn: #fbbf24;
     --warn-bg: #2b2010;
-    --serie-1: #3987e5; --serie-2: #d95926; --serie-3: #199e70; --serie-4: #c98500;
-    --serie-5: #d55181; --serie-6: #008300; --serie-7: #9085e9; --serie-8: #e66767;
   }
 }
 
@@ -740,11 +735,20 @@ body { padding-inline: var(--lado); }
 /* ═══════════ Gráficos ═══════════
    Paletas validadas con el comprobador, con pasos propios en cada modo en
    vez de un volteo automático. Claro: #6d28d9 #0891b2 #b45309.
-   Oscuro:  #9333ea #0891b2 #ea580c. */
+   Oscuro:  #9333ea #0891b2 #ea580c.
+   Del 4 al 8 los usa el comparador de fondos de Dinero. El orden es el que
+   pasa el comprobador en los dos modos (peor par para daltonismo: 7,2 en
+   claro, en la banda que exige etiquetas visibles, y el comparador las pone).
+   No reordenar sin volver a validar. */
 :root {
   --serie-1: #6d28d9;
   --serie-2: #0891b2;
   --serie-3: #b45309;
+  --serie-4: #2a78d6;
+  --serie-5: #e34948;
+  --serie-6: #008300;
+  --serie-7: #e87ba4;
+  --serie-8: #eda100;
   --rejilla: #e2dcec;
 }
 @media (prefers-color-scheme: dark) {
@@ -752,6 +756,11 @@ body { padding-inline: var(--lado); }
     --serie-1: #9333ea;
     --serie-2: #0891b2;
     --serie-3: #ea580c;
+    --serie-4: #3987e5;
+    --serie-5: #e66767;
+    --serie-6: #008300;
+    --serie-7: #d55181;
+    --serie-8: #c98500;
     --rejilla: #272036;
   }
 }

@@ -87,7 +87,7 @@ export function YearsSlider({ value, onChange }) {
         step={1}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-serie-1"
+        className="w-full accent-accent"
       />
       <div className="flex justify-between text-[10px] text-muted font-mono">
         <span>1A</span><span>10A</span><span>20A</span><span>30A</span><span>40A</span>
@@ -177,7 +177,7 @@ export function AllocationSliders({ worldPct, onWorldChange, cagrW, cagrE }) {
             type="button"
             onClick={() => onWorldChange(p.v)}
             className={`flex-1 rounded-md border px-2 py-1 text-[10px] font-mono font-semibold transition ${worldPct === p.v
-                ? "border-accent bg-pos-bg text-pos"
+                ? "border-accent bg-accent-bg text-accent"
                 : "border-rule bg-card text-muted hover:text-ink"
               }`}
           >
@@ -194,7 +194,7 @@ export function ResultHero({ invested, balance, gains, years, strategyLabel }) {
   const multiplier = balance / Math.max(invested, 1);
   const positive = gains >= 0;
   return (
-    <div className="rounded-xl border border-accent bg-gradient-to-br from-pos-bg to-transparent p-5">
+    <div className="rounded-xl border border-accent bg-gradient-to-br from-accent-bg to-transparent p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
         <div className="text-[10px] uppercase tracking-wider text-pos flex items-center">
           Proyección con interés compuesto
@@ -238,8 +238,8 @@ export function ScenarioGrid({ initial, monthly, years, baseRate }) {
   ];
   const tones = {
     red: { border: "border-neg", bg: "bg-neg-bg", text: "text-neg" },
-    emerald: { border: "border-accent", bg: "bg-pos-bg", text: "text-pos" },
-    sky: { border: "border-accent", bg: "bg-accent-bg", text: "text-accent" },
+    emerald: { border: "border-rule", bg: "bg-card", text: "text-ink" },
+    sky: { border: "border-pos", bg: "bg-pos-bg", text: "text-pos" },
   };
   return (
     <div className="rounded-xl border border-rule bg-field p-4">
@@ -285,9 +285,9 @@ export function ScenarioTimeline({ initial, monthly, years, baseRate }) {
   ];
 
   const tones = {
-    red: { dot: "bg-serie-2", text: "text-neg", bg: "bg-neg-bg" },
-    emerald: { dot: "bg-serie-1", text: "text-pos", bg: "bg-pos-bg" },
-    sky: { dot: "bg-serie-3", text: "text-accent", bg: "bg-accent-bg" },
+    red: { dot: "bg-neg", text: "text-neg", bg: "bg-neg-bg" },
+    emerald: { dot: "bg-ink", text: "text-ink", bg: "bg-rule-soft" },
+    sky: { dot: "bg-pos", text: "text-pos", bg: "bg-pos-bg" },
   };
 
   const rows = scenarios.map((s) => {
@@ -402,7 +402,7 @@ export function InvestmentCalculator({ funds }) {
             <InfoTip termKey="DCA" />
           </p>
         </div>
-        <span className="hidden md:inline-flex items-center gap-1.5 rounded-md bg-pos-bg border border-accent px-2.5 py-1 text-[11px] text-pos">
+        <span className="hidden md:inline-flex items-center gap-1.5 rounded-md bg-accent-bg border border-accent px-2.5 py-1 text-[11px] text-accent">
           ⚡ Killer feature
         </span>
       </div>
@@ -460,9 +460,9 @@ export function InvestmentCalculator({ funds }) {
                 Evolución mes a mes · abanico de mercado
               </span>
               <div className="flex items-center gap-3 text-[10px] font-mono text-muted">
-                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-serie-2"></span>Malo</span>
-                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-serie-1"></span>Normal</span>
-                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-serie-3"></span>Bueno</span>
+                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-neg"></span>Malo</span>
+                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-ink"></span>Normal</span>
+                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-pos"></span>Bueno</span>
                 <span className="inline-flex items-center gap-1"><span className="h-px w-4 bg-muted"></span>Aportado</span>
               </div>
             </div>
@@ -475,8 +475,8 @@ export function InvestmentCalculator({ funds }) {
                       <stop offset="100%" stopColor="var(--muted)" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gradBase" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--serie-1)" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="var(--serie-1)" stopOpacity={0} />
+                      <stop offset="0%" stopColor="var(--ink)" stopOpacity={0.12} />
+                      <stop offset="100%" stopColor="var(--ink)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CalcGrid strokeDasharray="2 4" stroke="var(--rule-soft)" vertical={false} />
@@ -516,7 +516,7 @@ export function InvestmentCalculator({ funds }) {
                     type="monotone"
                     dataKey="base"
                     name="Mercado normal"
-                    stroke="var(--serie-1)"
+                    stroke="var(--ink)"
                     strokeWidth={2}
                     fill="url(#gradBase)"
                   />
@@ -524,7 +524,7 @@ export function InvestmentCalculator({ funds }) {
                     type="monotone"
                     dataKey="bear"
                     name="Mercado malo"
-                    stroke="var(--serie-2)"
+                    stroke="var(--neg)"
                     strokeWidth={1.5}
                     dot={false}
                     strokeDasharray="5 3"
@@ -533,7 +533,7 @@ export function InvestmentCalculator({ funds }) {
                     type="monotone"
                     dataKey="bull"
                     name="Mercado bueno"
-                    stroke="var(--serie-3)"
+                    stroke="var(--pos)"
                     strokeWidth={1.5}
                     dot={false}
                     strokeDasharray="5 3"

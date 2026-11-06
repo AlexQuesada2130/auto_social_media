@@ -24,20 +24,20 @@ export function SummaryCard({ label, value, sub, tone = "neutral", icon, tip }) 
       iconBg: "bg-rule-soft text-muted",
     },
     positive: {
-      border: "border-accent",
-      bg: "bg-gradient-to-br from-pos-bg to-transparent",
+      border: "border-rule",
+      bg: "bg-card",
       text: "text-pos",
       iconBg: "bg-pos-bg text-pos",
     },
     negative: {
-      border: "border-neg",
-      bg: "bg-gradient-to-br from-neg-bg to-transparent",
+      border: "border-rule",
+      bg: "bg-card",
       text: "text-neg",
       iconBg: "bg-neg-bg text-neg",
     },
     accent: {
-      border: "border-accent",
-      bg: "bg-gradient-to-br from-accent-bg to-transparent",
+      border: "border-rule",
+      bg: "bg-card",
       text: "text-ink",
       iconBg: "bg-accent-bg text-accent",
     },
@@ -200,7 +200,7 @@ export function FundPicker({ catalog, onPick, onClose }) {
           <button
             key={f.id}
             onClick={() => onPick(f.id)}
-            className="group flex items-center justify-between gap-3 rounded-md border border-rule bg-card px-3 py-2 hover:border-accent hover:bg-pos-bg transition text-left"
+            className="group flex items-center justify-between gap-3 rounded-md border border-rule bg-card px-3 py-2 hover:border-accent hover:bg-accent-bg transition text-left"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="h-2 w-2 rounded-full flex-none" style={{ background: f.color ?? "var(--faint)" }}></span>
@@ -348,7 +348,7 @@ export function MyPortfolio({ funds, positions, setPositions, extraCatalog = [] 
           <button
             type="button"
             onClick={() => setShowPicker(true)}
-            className="group flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-rule bg-card px-4 py-6 hover:border-accent hover:bg-pos-bg transition min-h-[180px]"
+            className="group flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-rule bg-card px-4 py-6 hover:border-accent hover:bg-accent-bg transition min-h-[180px]"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-rule group-hover:border-accent text-2xl font-light text-muted group-hover:text-accent transition">
               +

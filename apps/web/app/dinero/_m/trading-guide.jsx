@@ -67,7 +67,7 @@ function ArticleCard({ article }) {
       href={article.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col gap-3 rounded-2xl border border-rule bg-card backdrop-blur p-5 hover:border-accent hover:bg-pos-bg transition"
+      className="group flex flex-col gap-3 rounded-2xl border border-rule bg-card backdrop-blur p-5 hover:border-accent hover:bg-accent-bg transition"
     >
       <div className="flex items-center justify-between gap-2">
         <span className="inline-block rounded-md bg-rule-soft px-2 py-0.5 text-[10px] font-medium text-muted uppercase tracking-wider">
@@ -134,7 +134,7 @@ const GUIDES = [
 function GuideCard({ guide }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`rounded-2xl border transition ${open ? 'border-accent bg-pos-bg' : 'border-rule bg-card'}`}>
+    <div className={`rounded-2xl border transition ${open ? 'border-accent bg-accent-bg' : 'border-rule bg-card'}`}>
       <button
         type="button"
         className="w-full flex items-center justify-between gap-4 p-5 text-left"
@@ -223,7 +223,7 @@ export function TradingGuide() {
                 onClick={() => setActiveCategory(c.id)}
                 className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
                   activeCategory === c.id
-                    ? 'border-accent bg-pos-bg text-pos'
+                    ? 'border-accent bg-accent-bg text-accent'
                     : 'border-rule bg-card text-muted hover:text-ink'
                 }`}
               >

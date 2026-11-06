@@ -32,6 +32,8 @@ module.exports = {
         ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8].map((n) => [`serie-${n}`, `var(--serie-${n})`])),
       },
       boxShadow: { glow: "var(--glow)" },
+      // Las esquinas de la Mesa: 10px en tarjetas, 3px en botones y campos.
+      borderRadius: { md: "3px", lg: "4px", xl: "8px", "2xl": "10px" },
     },
   },
   plugins: [],
