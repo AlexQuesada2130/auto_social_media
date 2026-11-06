@@ -12,6 +12,13 @@ const primera = (...nombres) => nombres.map((n) => process.env[n]).find(Boolean)
 const URL_KV = primera("UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_KV_REST_API_URL", "KV_REST_API_URL");
 const TOKEN_KV = primera("UPSTASH_REDIS_REST_TOKEN", "UPSTASH_REDIS_REST_KV_REST_API_TOKEN", "KV_REST_API_TOKEN");
 const hayKV = Boolean(URL_KV && TOKEN_KV);
+
+// En Vercel el disco se borra entre peticiones: sin base de datos, guardar en
+// archivo haría que el recordatorio pareciera funcionar y luego se esfumara.
+// Mejor un error visible que un aviso que deja de sonar sin explicación.
+function exigirKV() {
+  if (!hayKV && process.env.VERCEL) throw new Error("Faltan las variables de Upstash: el recordatorio no se puede guardar");
+}
 const CLAVE = "mesa:recordatorios";
 const ARCHIVO = path.join(process.cwd(), "..", "..", "data", "recordatorios.json");
 
@@ -27,6 +34,7 @@ async function kv(comando) {
 }
 
 export async function leerRecordatorios() {
+  exigirKV();
   try {
     const crudo = hayKV ? await kv(["GET", CLAVE]) : await fs.readFile(ARCHIVO, "utf8");
     return crudo ? JSON.parse(crudo) : {};
@@ -37,6 +45,7 @@ export async function leerRecordatorios() {
 }
 
 export async function guardarRecordatorios(datos) {
+  exigirKV();
   const texto = JSON.stringify(datos);
   if (hayKV) await kv(["SET", CLAVE, texto]);
   else { await fs.mkdir(path.dirname(ARCHIVO), { recursive: true }); await fs.writeFile(ARCHIVO, texto); }
