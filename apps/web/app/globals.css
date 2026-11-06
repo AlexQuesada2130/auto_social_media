@@ -824,3 +824,6 @@ body { padding-inline: var(--lado); }
   font: inherit; background: var(--field); color: var(--ink);
   border: 1px solid var(--rule); border-radius: 3px; padding: 8px;
 }
+
+.estado-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.estado-acciones .btn { flex: 1 1 auto; justify-content: center; }

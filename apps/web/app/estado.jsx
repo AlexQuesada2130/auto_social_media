@@ -44,6 +44,8 @@ export default function Estado({ onCerrar }) {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
   const [suscribiendo, setSuscribiendo] = useState(false);
+  const [probando, setProbando] = useState(false);
+  const [resultadoPrueba, setResultadoPrueba] = useState("");
   const chat = usarPuente();
 
   const cargar = useCallback(async () => {
@@ -133,9 +135,33 @@ export default function Estado({ onCerrar }) {
         </>
       )}
 
-      <button className="btn primary" onClick={activarAvisos} disabled={suscribiendo}>
-        {suscribiendo ? "Activando…" : "Activar notificaciones en este dispositivo"}
-      </button>
+      <div className="estado-acciones">
+        <button className="btn primary" onClick={activarAvisos} disabled={suscribiendo}>
+          {suscribiendo ? "Activando…" : "Activar notificaciones aquí"}
+        </button>
+        <button
+          className="btn" disabled={probando}
+          onClick={async () => {
+            setProbando(true);
+            setResultadoPrueba("");
+            try {
+              const r = await fetch("/api/push/prueba", { method: "POST" });
+              const d = await r.json();
+              setResultadoPrueba(
+                d.enviados > 0
+                  ? `Enviada a ${d.enviados} dispositivo${d.enviados > 1 ? "s" : ""}. Si no suena en unos segundos, algo la está bloqueando.`
+                  : d.mensaje || d.motivo || "No se pudo enviar.",
+              );
+            } catch {
+              setResultadoPrueba("No se pudo contactar con el servidor.");
+            }
+            setProbando(false);
+          }}
+        >
+          {probando ? "Enviando…" : "Enviar una de prueba"}
+        </button>
+      </div>
+      {resultadoPrueba && <p className="estado-pie">{resultadoPrueba}</p>}
       <p className="estado-pie">
         En iPhone, primero añade la app a la pantalla de inicio desde Compartir.
         Safari no admite notificaciones desde una pestaña normal.
