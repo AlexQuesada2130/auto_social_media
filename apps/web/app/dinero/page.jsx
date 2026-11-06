@@ -10,6 +10,7 @@ import { InvestmentCalculator } from "./_m/calculator";
 import { TradingGuide } from "./_m/trading-guide";
 import { MoneyManager } from "./_m/money";
 import { AjustesDinero } from "./_m/ajustes";
+import { PlanFondos } from "./_m/plan-fondos";
 import { useVaultField } from "./_m/campo";
 import { useCandado } from "../candado";
 import "./dinero.css";
@@ -60,6 +61,7 @@ function Inversion() {
         setPositions={setPositions}
         extraCatalog={EXTRA_FUNDS}
       />
+      <PlanFondos />
       <section>
         <div className="flex items-end justify-between mb-4">
           <div>
