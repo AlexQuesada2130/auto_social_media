@@ -37,6 +37,22 @@ const ARCHIVO_COM = path.join(process.cwd(), "..", "..", "data", "comentarios.js
 
 const hayKV = Boolean(URL_KV && TOKEN_KV);
 
+// En Vercel el disco es efímero: lo que se escriba en un archivo desaparece
+// entre peticiones. Caer al archivo ahí sería lo peor posible, porque todo
+// parecería funcionar mientras los datos se evaporan sin un solo error.
+//
+// Así que en producción, sin KV, esto revienta. Un 500 ruidoso se arregla en
+// cinco minutos; una cola que se vacía sola no se diagnostica nunca.
+const enVercel = Boolean(process.env.VERCEL);
+
+function exigirAlmacen() {
+  if (hayKV || !enVercel) return;
+  throw new Error(
+    "Sin Upstash en Vercel: el disco es efímero y los datos se perderían. " +
+    "Conecta la base de datos desde Storage en el panel del proyecto.",
+  );
+}
+
 async function kv(comando) {
   const res = await fetch(URL_KV, {
     method: "POST",
@@ -55,6 +71,7 @@ async function kv(comando) {
 }
 
 async function leerArchivo(ruta = ARCHIVO) {
+  exigirAlmacen();
   try {
     return JSON.parse(await fs.readFile(ruta, "utf8"));
   } catch (e) {
@@ -64,6 +81,7 @@ async function leerArchivo(ruta = ARCHIVO) {
 }
 
 async function escribirArchivo(lista, ruta = ARCHIVO) {
+  exigirAlmacen();
   await fs.mkdir(path.dirname(ruta), { recursive: true });
   await fs.writeFile(ruta, JSON.stringify(lista, null, 2) + "\n");
 }
