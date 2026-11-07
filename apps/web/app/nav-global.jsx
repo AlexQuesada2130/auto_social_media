@@ -1,7 +1,9 @@
 "use client";
 
-// Barra global: salta entre secciones sin volver atrás. Arriba y fija, porque
-// la sección Social ya usa la barra inferior para sus propias pestañas.
+// Barra global flotante, abajo, al alcance del pulgar. Cristal translúcido y
+// el icono activo elevado en una burbuja con brillo, que se desliza al cambiar
+// de sección. Respeta las zonas seguras del iPhone (barra de inicio abajo,
+// muescas a los lados en horizontal). El candado va aparte, arriba a la derecha.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -17,21 +19,21 @@ const SECCIONES = [
 
 export default function NavGlobal({ onBloquear }) {
   const ruta = usePathname();
+  const activa = Math.max(0, SECCIONES.findIndex((s) => (s.href === "/" ? ruta === "/" : ruta.startsWith(s.href))));
   return (
-    <nav className="navg" aria-label="Secciones de la app">
-      {SECCIONES.map((s) => {
-        const viva = s.href === "/" ? ruta === "/" : ruta.startsWith(s.href);
-        return (
-          <Link key={s.href} href={s.href} className={`navg-enlace${viva ? " viva" : ""}`} aria-current={viva ? "page" : undefined}>
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">{s.icono}</svg>
-            <span>{s.nombre}</span>
-          </Link>
-        );
-      })}
-      <button className="navg-enlace navg-candado" onClick={onBloquear} aria-label="Bloquear">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" {...T} /><path d="M8 11V8a4 4 0 0 1 8 0v3" {...T} /></svg>
-        <span>Bloquear</span>
+    <>
+      <button className="candado-flotante" onClick={onBloquear} aria-label="Bloquear la app" title="Bloquear">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" {...T} /><path d="M8 11V8a4 4 0 0 1 8 0v3" {...T} /></svg>
       </button>
-    </nav>
+      <nav className="navg" aria-label="Secciones de la app" style={{ "--activa": activa, "--n": SECCIONES.length }}>
+        <span className="navg-burbuja" aria-hidden="true" />
+        {SECCIONES.map((s, i) => (
+          <Link key={s.href} href={s.href} className={`navg-enlace${i === activa ? " viva" : ""}`} aria-current={i === activa ? "page" : undefined}>
+            <span className="navg-icono"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">{s.icono}</svg></span>
+            <span className="navg-texto">{s.nombre}</span>
+          </Link>
+        ))}
+      </nav>
+    </>
   );
 }

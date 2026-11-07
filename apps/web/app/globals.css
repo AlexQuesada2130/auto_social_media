@@ -855,21 +855,76 @@ body { padding-inline: var(--lado); }
 .estado-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
 .estado-acciones .btn { flex: 1 1 auto; justify-content: center; }
 
-/* ── Navegación global (app/nav-global.jsx) ───────────────────────────── */
-:root { --navg-alto: calc(58px + env(safe-area-inset-top, 0px)); }
+/* ── Navegación global flotante (app/nav-global.jsx) ──────────────────────
+   Píldora de cristal abajo; el icono activo sube a una burbuja con brillo.
+   Las zonas seguras se suman a los márgenes para no chocar con la barra de
+   inicio del iPhone ni con la muesca en horizontal. */
+:root {
+  /* Arriba ya no hay barra global: solo la zona segura. */
+  --navg-alto: env(safe-area-inset-top, 0px);
+  --navg-bajo: calc(64px + 14px + env(safe-area-inset-bottom, 0px));
+  --cristal: color-mix(in srgb, var(--card) 72%, transparent);
+  --cristal-borde: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+body { padding-bottom: calc(var(--navg-bajo) + 16px); }
+
 .navg {
-  position: sticky; top: 0; z-index: 30;
-  display: flex; justify-content: center; gap: 2px;
-  margin-inline: -16px; padding: env(safe-area-inset-top, 0px) 8px 0;
-  height: var(--navg-alto);
-  background: var(--paper); border-bottom: 1px solid var(--rule);
+  position: fixed; z-index: 40;
+  left: calc(12px + env(safe-area-inset-left, 0px));
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  margin-inline: auto; max-width: 520px; height: 64px;
+  display: grid; grid-template-columns: repeat(var(--n), 1fr);
+  border-radius: 24px;
+  background: var(--cristal);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid var(--cristal-borde);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25), inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
+}
+/* La burbuja del activo: se desliza a la columna activa. */
+.navg-burbuja {
+  position: absolute; top: -18px; width: 52px; height: 52px; border-radius: 50%;
+  left: calc((100% / var(--n)) * (var(--activa) + 0.5) - 26px);
+  background: var(--cristal);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent), 0 8px 24px color-mix(in srgb, var(--accent) 45%, transparent);
+  transition: left 380ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  pointer-events: none;
 }
 .navg-enlace {
-  appearance: none; background: none; border: 0; cursor: pointer; font: inherit;
-  flex: 0 1 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  min-height: 56px; color: var(--muted); text-decoration: none; font-size: var(--t-micro);
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px;
+  padding-bottom: 9px; min-height: 64px;
+  color: var(--muted); text-decoration: none; font-size: var(--t-micro); font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
 }
-.navg-enlace.viva { color: var(--accent); font-weight: 700; }
-.navg-enlace:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.navg-candado { margin-left: 8px; }
-@media (max-width: 380px) { .navg-enlace span { display: none; } }
+.navg-icono { display: grid; place-items: center; transition: transform 380ms cubic-bezier(0.34, 1.4, 0.64, 1), color 200ms; }
+.navg-enlace.viva { color: var(--ink); }
+.navg-enlace.viva .navg-icono { transform: translateY(-22px); color: var(--accent); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent)); }
+.navg-enlace.viva .navg-texto { color: var(--accent); }
+.navg-enlace:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; border-radius: 16px; }
+
+.candado-flotante {
+  position: fixed; z-index: 40;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  color: var(--muted); background: var(--cristal); border: 1px solid var(--cristal-borde);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.candado-flotante:hover { color: var(--ink); }
+
+@media (max-width: 360px) { .navg-texto { display: none; } .navg-enlace { justify-content: center; padding-bottom: 0; } }
+@media (prefers-reduced-motion: reduce) { .navg-burbuja, .navg-icono { transition: none; } }
+
+/* La barra de Social (Cola, Resultados, Comentar, Estado) deja el hueco de
+   abajo a la global y pasa a ser un selector arriba, bajo la cabecera. */
+.nav {
+  position: static; bottom: auto; z-index: auto;
+  margin-block: 0 14px; padding-bottom: 0;
+  border: 1px solid var(--rule); border-radius: 14px; background: var(--card);
+}
+.nav .nav-boton { min-height: 48px; padding: 6px 4px; }

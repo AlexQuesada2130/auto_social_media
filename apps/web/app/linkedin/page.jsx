@@ -112,6 +112,8 @@ export default function Pagina() {
         </div>
       </header>
 
+      <Nav activa={vista} onCambiar={setVista} pendientes={nPend} />
+
       {vista === "resultados" && (
         <Resultados borradores={borradores} onGuardar={parchear} />
       )}
@@ -174,7 +176,6 @@ export default function Pagina() {
 
       </>)}
 
-      <Nav activa={vista} onCambiar={setVista} pendientes={nPend} />
 
       {vista === "cola" && (
       <section className="toolbox">
