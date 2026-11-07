@@ -3,6 +3,7 @@
 
 import { leer, guardar } from "../kvpropio";
 import { CESTA, cierresDiarios, preciosActuales } from "./kraken";
+import { cierresDelDia } from "./mercado";
 import { avanzar, estadoInicial, valorSiVendo } from "./motor";
 
 const CLAVE = "mesa:robot";
@@ -20,6 +21,7 @@ export async function ejecutarDia() {
 
   const historico = await cierresDiarios();
   const precios = await preciosActuales();
+  await cierresDelDia(historico); // el monitor los reutiliza el resto del día
   // Solo cierres de días anteriores a hoy (la señal nunca ve el día en curso).
   const cierres = Object.fromEntries(Object.entries(historico).map(([c, h]) => [c, h.cierres.filter((_, j) => h.fechas[j] < fecha)]));
   const { avisos } = avanzar(estado, { fecha, cierres, precios });
@@ -45,6 +47,8 @@ export function resumen(estado) {
   const semanaOps = estado.operaciones.filter((o) => o.fecha > desde).length;
   const partes = Object.fromEntries(Object.entries(estado.partes).map(([id, P]) => [id, {
     valor: P.ultimoValor ?? P.aportado, aportado: P.aportado, frenado: P.frenado, exposicion: P.exposicion,
+    // Cuánto más puede caer el rendimiento antes de que salte el freno.
+    margenFreno: P.frenado ? 0 : Math.max(0, 1 - (P.maxNav * 0.75) / ((P.ultimoValor ?? P.aportado) / P.participaciones)),
     diasFuera: P.diasFuera, decision: P.decision, frenazos: P.frenazos,
     agentes: P.agentes.length, reserva: P.reserva,
     posiciones: Object.fromEntries(estado.activos.map((a) => [a, P.agentes.reduce((s, ag) => s + ag.uds[a] * (precios[a] ?? ag.ultimo[a] ?? 0), 0)]).filter(([, v]) => v > 0.005)),

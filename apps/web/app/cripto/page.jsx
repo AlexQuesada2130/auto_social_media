@@ -6,6 +6,7 @@ import { Marco } from "../_finanzas/marco";
 import { SummaryCard } from "../_finanzas/portfolio-tracker";
 import { eur, lucide } from "../_finanzas/components";
 import { useCandado } from "../candado";
+import { MonitorCripto } from "../_finanzas/monitor-cripto";
 
 const NOMBRE_PARTE = { nucleo: "Acumulación (70 %)", satelite: "Trading por tendencia (30 %)" };
 const pct = (x) => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(1)} %`;
@@ -57,6 +58,7 @@ export default function Cripto() {
   const [robot, setRobot] = useState(undefined);
   const [error, setError] = useState("");
   const [ocupado, setOcupado] = useState(false);
+  const [pestana, setPestana] = useState("monitor");
 
   const cargar = useCallback(async () => {
     const r = await fetch("/api/robot", { cache: "no-store" });
@@ -77,7 +79,10 @@ export default function Cripto() {
 
   const hoy = new Date().toISOString().slice(0, 10);
   return (
-    <Marco titulo="Cripto bot" subtitulo="Prueba en papel: precios reales de Kraken, dinero ficticio. 50 € al empezar + 10 € cada semana.">
+    <Marco titulo="Cripto" subtitulo="Mercado en vivo y el robot en papel (precios reales de Kraken, dinero ficticio)."
+      pestanas={[{ id: "monitor", nombre: "Monitor" }, { id: "robot", nombre: "Robot" }]} activa={pestana} onPestana={setPestana}>
+      {pestana === "monitor" && <MonitorCripto partes={robot?.partes} />}
+      {pestana === "robot" && <>
       {error && <p className="text-sm text-neg">{error}</p>}
       {robot === undefined && !error && <p className="text-sm text-muted">Cargando…</p>}
 
@@ -178,6 +183,7 @@ export default function Cripto() {
           </div>
         </>
       )}
+      </>}
     </Marco>
   );
 }
