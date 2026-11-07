@@ -1,12 +1,14 @@
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { leerRecordatorios } from "@/lib/recordatorios";
 import { listarSubs, olvidarSubs } from "@/lib/store";
 import { enviarWeb } from "@/lib/webpush";
 import { ejecutarDia, leerRobot, guardarRobot, resumen, textoSemanal } from "@/lib/robot/servicio";
 
-// Tarea diaria de Vercel Cron (vercel.json, 08:00 UTC = 09:00 en Madrid en
-// invierno). Vercel la llama con "Authorization: Bearer $CRON_SECRET"; sin
-// esa variable no hace nada. En Hobby solo hay una ejecución al día, así que
+// Tarea diaria de Vercel Cron (vercel.json, "0 8 * * *" UTC). En el plan Hobby
+// Vercel la lanza en algún momento de esa hora: entre las 09:00 y las 10:00 en
+// Madrid en invierno, no a una hora exacta. La llama con
+// "Authorization: Bearer $CRON_SECRET"; sin esa variable no hace nada. En Hobby solo hay una ejecución al día, así que
 // todo lo diario vive aquí y lo semanal se decide por fecha.
 //
 //  1. El robot de cripto avanza un día (en papel).
@@ -16,9 +18,17 @@ import { ejecutarDia, leerRobot, guardarRobot, resumen, textoSemanal } from "@/l
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export async function GET(req) {
+// Misma comparación que lib/auth.js: resúmenes de 32 bytes en tiempo constante.
+function secretoValido(cabecera) {
   const secreto = process.env.CRON_SECRET;
-  if (!secreto || req.headers.get("authorization") !== `Bearer ${secreto}`) {
+  if (!secreto) return false;
+  const a = crypto.createHash("sha256").update(String(cabecera || "")).digest();
+  const b = crypto.createHash("sha256").update(`Bearer ${secreto}`).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+export async function GET(req) {
+  if (!secretoValido(req.headers.get("authorization"))) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   const ahora = new Date();
