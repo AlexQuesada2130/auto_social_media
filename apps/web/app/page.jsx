@@ -23,9 +23,18 @@ function resumenDinero(datos) {
   return { ingresos, gastos, balance: ingresos - gastos };
 }
 
+function resumenFondos(datos) {
+  const fondos = datos.planFondos?.fondos ?? [];
+  const total = fondos.reduce((s, f) => s + (f.valor || 0), 0);
+  const sumaObj = fondos.reduce((s, f) => s + (f.objetivo || 0), 0) || 1;
+  const desvio = total > 0 ? Math.max(...fondos.map((f) => Math.abs((f.valor / total) * 100 - (f.objetivo / sumaObj) * 100))) : 0;
+  return { total, desvio, umbral: datos.planFondos?.umbral ?? 5, n: fondos.length };
+}
+
 export default function Panel() {
   const { datos, actualizar, cerrar, salir, faceId } = useCandado();
   const [pendientes, setPendientes] = useState(null);
+  const [robot, setRobot] = useState(undefined);
   const [aviso, setAviso] = useState("");
 
   useEffect(() => {
@@ -38,7 +47,15 @@ export default function Panel() {
       .catch(() => {});
   }, [cerrar]);
 
+  useEffect(() => {
+    fetch("/api/robot", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => setRobot(j ? j.robot : null))
+      .catch(() => setRobot(null));
+  }, []);
+
   const dinero = resumenDinero(datos);
+  const fondos = resumenFondos(datos);
   const minutos = datos.settings?.autoLockMinutes ?? 15;
 
   async function alternarFaceId() {
@@ -55,28 +72,46 @@ export default function Panel() {
     <main className="wrap">
       <header className="masthead">
         <h1>Mesa</h1>
-        <div className="tally">
-          <button className="btn ghost estado-boton" onClick={cerrar}>Bloquear</button>
-        </div>
       </header>
 
       <div className="hub-rejilla">
-        <Link href="/linkedin" className="hub-tarjeta">
-          <span className="hub-tipo">LinkedIn</span>
-          <span className="hub-cifra">{pendientes ?? "—"}</span>
+        <Link href="/inversiones" className="hub-tarjeta">
+          <span className="hub-tipo">Inversiones</span>
+          <span className="hub-cifra">{fondos.total > 0 ? eur(fondos.total) : "—"}</span>
           <span className="hub-pie">
-            {pendientes === null ? "Cargando la cola…" : pendientes === 1 ? "propuesta pendiente" : "propuestas pendientes"}
+            {fondos.total <= 0 ? "Escribe el valor de tus fondos de MyInvestor"
+              : fondos.desvio > fondos.umbral ? `Toca reequilibrar: un fondo se desvía ${fondos.desvio.toFixed(1)} puntos`
+              : "Reparto en orden"}
           </span>
         </Link>
 
-        <Link href="/dinero" className="hub-tarjeta">
-          <span className="hub-tipo">Dinero</span>
+        <Link href="/linkedin" className="hub-tarjeta">
+          <span className="hub-tipo">Social</span>
+          <span className="hub-cifra">{pendientes ?? "—"}</span>
+          <span className="hub-pie">
+            {pendientes === null ? "Cargando la cola…" : pendientes === 1 ? "propuesta de LinkedIn pendiente" : "propuestas de LinkedIn pendientes"}
+          </span>
+        </Link>
+
+        <Link href="/cripto" className="hub-tarjeta">
+          <span className="hub-tipo">Cripto bot · papel</span>
+          <span className={`hub-cifra${robot && robot.resultado < 0 ? " hub-rojo" : ""}`}>
+            {robot ? `${robot.resultado >= 0 ? "+" : ""}${robot.resultado.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}` : "—"}
+          </span>
+          <span className="hub-pie">
+            {robot === undefined ? "Cargando…" : robot === null ? "Sin arrancar: arranca en la próxima ejecución diaria"
+              : robot.pausado ? "Pausado"
+              : Object.values(robot.partes).some((p) => p.frenado) ? "Freno activo: necesita tu respuesta"
+              : `sobre ${eur(robot.aportado)} aportados · ${robot.dias} días`}
+          </span>
+        </Link>
+
+        <Link href="/gastos" className="hub-tarjeta">
+          <span className="hub-tipo">Gastos del mes</span>
           <span className={`hub-cifra${dinero.balance < 0 ? " hub-rojo" : ""}`}>
             {dinero.balance > 0 ? "+" : ""}{eur(dinero.balance)}
           </span>
-          <span className="hub-pie">
-            balance de este mes · {eur(dinero.ingresos)} entran, {eur(dinero.gastos)} salen
-          </span>
+          <span className="hub-pie">{eur(dinero.ingresos)} entran, {eur(dinero.gastos)} salen</span>
         </Link>
       </div>
 

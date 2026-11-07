@@ -40,7 +40,9 @@ export function resumen(estado) {
   const valor = ult ? valorSiVendo(estado, precios) : 0;
   // Variación de la semana sin contar lo aportado en ella.
   const semana = ult && hace7 && hace7 !== ult ? (ult.valor - (ult.aportado - hace7.aportado)) / hace7.valor - 1 : 0;
-  const semanaOps = estado.operaciones.filter((o) => ult && o.fecha > (hace7?.fecha ?? "")).length;
+  // Con menos de una semana de historial cuentan todas las operaciones.
+  const desde = h.length > 7 ? h[h.length - 8].fecha : "";
+  const semanaOps = estado.operaciones.filter((o) => o.fecha > desde).length;
   const partes = Object.fromEntries(Object.entries(estado.partes).map(([id, P]) => [id, {
     valor: P.ultimoValor ?? P.aportado, aportado: P.aportado, frenado: P.frenado, exposicion: P.exposicion,
     diasFuera: P.diasFuera, decision: P.decision, frenazos: P.frenazos,
