@@ -152,7 +152,7 @@ export default function Cripto() {
             <p className="text-xs text-muted leading-relaxed">
               Una vez al día, entre las 07:00 y las 08:00 (Madrid). Acumulación: compra cada lunes con los 10 € y reequilibra cada 30 días. Tendencia:
               revisa cada día y opera solo cuando una cripto cruza su media de 100 días. Freno: lo vigila cada día. Memoria de errores: la cripto
-              que el trading vende con pérdida queda vetada 90 días, y los clones lo heredan. La reserva es ganancia blindada: no
+              que el trading vende con pérdida queda vetada 30 días, y los clones lo heredan. La reserva es ganancia blindada: no
               se usa para rescatar. Resumen al móvil los lunes. Cesta: BTC, ETH, XRP, SOL, TRX, ZEC, HYPE, DOGE, LINK, ADA, XLM, BCH, NEAR, UNI y LTC.
             </p>
           </div>

@@ -13,7 +13,7 @@
 //     mitad y te pregunta. Sin respuesta en 30 días, recompra en 2 tramos
 //     semanales. Puedes decir "volver ya" o "salir del todo".
 //   - Memoria de errores (trading): la cripto que se vende con pérdida queda
-//     vetada 90 días. Es del linaje: los clones la heredan.
+//     vetada 30 días. Es del linaje: los clones la heredan.
 //   - Reserva blindada: lo que va a la reserva es ganancia y no se usa para
 //     rescatar a nadie.
 //
@@ -26,7 +26,7 @@ export const DIAS_SIN_RESPUESTA = 30;
 
 export const PARTES = {
   nucleo: { nombre: "Acumulación", fraccion: 0.7, reequilibrio: 30, estrategia: "cesta", memoria: 0, blindada: true },
-  satelite: { nombre: "Trading por tendencia", fraccion: 0.3, reequilibrio: 7, estrategia: "tendencia", memoria: 90, blindada: true },
+  satelite: { nombre: "Trading por tendencia", fraccion: 0.3, reequilibrio: 7, estrategia: "tendencia", memoria: 30, blindada: true },
 };
 
 // ── Estrategias: pesos con cierres hasta ayer ─────────────────────────────
