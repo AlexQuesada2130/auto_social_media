@@ -12,6 +12,10 @@
 //   - Freno: si el rendimiento cae un 25 % desde su mejor momento, vende la
 //     mitad y te pregunta. Sin respuesta en 30 días, recompra en 2 tramos
 //     semanales. Puedes decir "volver ya" o "salir del todo".
+//   - Memoria de errores (trading): la cripto que se vende con pérdida queda
+//     vetada 90 días. Es del linaje: los clones la heredan.
+//   - Reserva blindada: lo que va a la reserva es ganancia y no se usa para
+//     rescatar a nadie.
 //
 // Las señales usan cierres hasta ayer; las operaciones, el precio de ahora.
 // No sabe de dinero real: en papel, las operaciones solo se anotan.
@@ -21,8 +25,8 @@ export const FRENO = 0.25;
 export const DIAS_SIN_RESPUESTA = 30;
 
 export const PARTES = {
-  nucleo: { nombre: "Acumulación", fraccion: 0.7, reequilibrio: 30, estrategia: "cesta" },
-  satelite: { nombre: "Trading por tendencia", fraccion: 0.3, reequilibrio: 7, estrategia: "tendencia" },
+  nucleo: { nombre: "Acumulación", fraccion: 0.7, reequilibrio: 30, estrategia: "cesta", memoria: 0, blindada: true },
+  satelite: { nombre: "Trading por tendencia", fraccion: 0.3, reequilibrio: 7, estrategia: "tendencia", memoria: 90, blindada: true },
 };
 
 // ── Estrategias: pesos con cierres hasta ayer ─────────────────────────────
@@ -65,7 +69,7 @@ export function estadoInicial({ activos, inicial = 50, semanal = 10, fecha }) {
     partes[id] = {
       agentes: [nuevoAgente(b, activos)], reserva: 0, aportado: b, participaciones: b, maxNav: 1,
       frenado: false, diasFuera: 0, tramoVuelta: 0, exposicion: 1, frenazos: 0, decision: null,
-      objetivo: null, realizado: 0,
+      objetivo: null, realizado: 0, vetada: {},
     };
   }
   return { version: 1, modo: "papel", activos, inicial, semanal, inicio: fecha, ultimoDia: null, dia: 0, pausado: false, partes, historial: [], operaciones: [], avisos: [] };
@@ -97,6 +101,7 @@ export function avanzar(estado, { fecha, cierres, precios }) {
       const cv = ag.coste[a] * (uds / ag.uds[a]);
       P.realizado += neto - cv; ag.coste[a] -= cv; ag.uds[a] -= uds; ag.cash += neto;
       anotar(id, "venta", a, neto, p);
+      if (cfg.memoria && neto < cv) (P.vetada ??= {})[a] = dia + cfg.memoria;
     };
     const comprar = (ag, a, gasto, p) => {
       gasto = Math.min(gasto, ag.cash);
@@ -161,6 +166,7 @@ export function avanzar(estado, { fecha, cierres, precios }) {
     }
 
     const w = pesos(cfg.estrategia, activos, cierres);
+    if (cfg.memoria) for (const a of activos) if ((P.vetada?.[a] ?? -1) > dia) w[a] = 0;
     if (!P.objetivo || activos.some((a) => Math.abs((w[a] ?? 0) - (P.objetivo[a] ?? 0)) > 1e-9)) { P.objetivo = w; toca = true; }
     if (toca && P.exposicion > 0) for (const ag of P.agentes) ajustar(ag, P.objetivo, P.exposicion);
 
@@ -188,7 +194,7 @@ export function avanzar(estado, { fecha, cierres, precios }) {
       P.agentes.push(...nuevos);
       for (const ag of P.agentes) {
         const v = valor(ag);
-        if (P.reserva > 1e-9 && v < ag.base * 0.5) {
+        if (!cfg.blindada && P.reserva > 1e-9 && v < ag.base * 0.5) {
           const pone = Math.min(P.reserva, ag.base - v);
           P.reserva -= pone; ag.cash += pone; ajustar(ag, P.objetivo, P.exposicion);
         }
