@@ -13,7 +13,7 @@ export function Marco({ titulo, subtitulo, pestanas, activa, onPestana, children
   const [ajustes, setAjustes] = useState(false);
   return (
     <div id="finanzas">
-      <div className="mx-auto max-w-7xl px-4 lg:px-10 pt-5 pb-2 flex flex-wrap items-end justify-between gap-3">
+      <div className="mx-auto max-w-7xl pl-4 lg:pl-10 pt-5 pb-2 flex flex-wrap items-end justify-between gap-3" style={{ paddingRight: "calc(64px + env(safe-area-inset-right, 0px))" }}>
         <div>
           <h1 className="text-xl font-semibold text-ink">{titulo}</h1>
           {subtitulo && <p className="text-xs text-muted mt-1">{subtitulo}</p>}

@@ -928,3 +928,6 @@ body { padding-bottom: calc(var(--navg-bajo) + 16px); }
   border: 1px solid var(--rule); border-radius: 14px; background: var(--card);
 }
 .nav .nav-boton { min-height: 48px; padding: 6px 4px; }
+
+/* Las cabeceras dejan sitio al candado flotante de arriba a la derecha. */
+.masthead { padding-right: calc(52px + env(safe-area-inset-right, 0px)); }
