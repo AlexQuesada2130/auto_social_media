@@ -200,12 +200,133 @@ function MonthlyTrend({ transactions, endMonth }) {
   );
 }
 
+
+// ── Anillos de presupuesto (al estilo del reloj) ──────────────────────────
+function AnillosPresupuesto({ monthTx, budgets }) {
+  const filas = Object.entries(budgets).filter(([, b]) => b > 0).map(([cat, b]) => {
+    const gastado = monthTx.filter((t) => t.type === 'expense' && t.category === cat).reduce((s, t) => s + t.amount, 0);
+    return { cat, b, gastado, f: gastado / b };
+  });
+  if (!filas.length) return null;
+  const R = 26, L = 2 * Math.PI * R;
+  return (
+    <div className="rounded-2xl border border-rule bg-card p-5">
+      <h3 className="text-sm font-semibold text-ink mb-4">Presupuestos del mes</h3>
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+        {filas.map(({ cat, b, gastado, f }) => {
+          const pasado = f > 1;
+          return (
+            <div key={cat} className="flex flex-col items-center text-center gap-1">
+              <svg viewBox="0 0 64 64" className="h-16 w-16" role="img" aria-label={`${cat}: ${Math.round(f * 100)} % del presupuesto`}>
+                <circle cx="32" cy="32" r={R} fill="none" stroke="var(--rule-soft)" strokeWidth="7" />
+                <circle cx="32" cy="32" r={R} fill="none" stroke={pasado ? 'var(--neg)' : f > 0.85 ? 'var(--warn)' : 'var(--accent)'} strokeWidth="7"
+                  strokeLinecap="round" strokeDasharray={`${Math.min(f, 1) * L} ${L}`} transform="rotate(-90 32 32)" />
+                <text x="32" y="36" textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--ink)">{Math.round(f * 100)}%</text>
+              </svg>
+              <span className="text-xs text-ink">{cat}</span>
+              <span className={`text-[11px] font-mono ${pasado ? 'text-neg' : 'text-muted'}`}>{eur(gastado, 0)} / {eur(b, 0)}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Calendario del mes: cada día, más intenso cuanto más se gastó ─────────
+function CalendarioGastos({ month, monthTx, dia, setDia }) {
+  const [y, m] = month.split('-').map(Number);
+  const dias = new Date(y, m, 0).getDate();
+  const hueco = (new Date(y, m - 1, 1).getDay() + 6) % 7; // lunes primero
+  const porDia = Array(dias + 1).fill(0);
+  for (const t of monthTx) if (t.type === 'expense') porDia[Number(t.date.slice(8, 10))] += t.amount;
+  const max = Math.max(...porDia, 0);
+  // 5 escalones de un solo color: la intensidad es la cantidad.
+  const paso = (v) => (v <= 0 || max <= 0 ? 0 : Math.min(4, Math.ceil((v / max) * 4)));
+  const TINTE = [0, 16, 32, 52, 75];
+  const hoy = todayISO();
+  return (
+    <div className="rounded-2xl border border-rule bg-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-ink">Calendario de gasto</h3>
+        {dia && <button onClick={() => setDia(null)} className="text-xs text-accent hover:underline">Ver todo el mes</button>}
+      </div>
+      <div className="grid grid-cols-7 gap-1.5 text-center">
+        {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => <div key={d} className="text-[10px] text-muted">{d}</div>)}
+        {Array.from({ length: hueco }, (_, i) => <div key={`h${i}`} />)}
+        {Array.from({ length: dias }, (_, i) => {
+          const d = i + 1;
+          const fecha = `${month}-${String(d).padStart(2, '0')}`;
+          const st = paso(porDia[d]);
+          const elegido = dia === fecha;
+          return (
+            <button key={d} onClick={() => setDia(elegido ? null : fecha)} title={porDia[d] > 0 ? `${d}: ${eur(porDia[d])} gastados` : `${d}: sin gastos`}
+              className={`aspect-square rounded-lg border text-xs flex flex-col items-center justify-center ${elegido ? 'border-accent' : fecha === hoy ? 'border-ink' : 'border-rule'}`}
+              style={{ background: st ? `color-mix(in srgb, var(--accent) ${TINTE[st]}%, transparent)` : undefined }}>
+              <span className="text-ink font-semibold">{d}</span>
+              {porDia[d] > 0 && <span className="text-[9px] font-mono text-ink opacity-80 hidden sm:block">{Math.round(porDia[d])}€</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex items-center justify-end gap-1 mt-3 text-[10px] text-muted">
+        menos {TINTE.map((t, i) => <span key={i} className="h-3 w-3 rounded border border-rule" style={{ background: t ? `color-mix(in srgb, var(--accent) ${t}%, transparent)` : undefined }} />)} más
+      </div>
+    </div>
+  );
+}
+
+// ── Metas de ahorro ───────────────────────────────────────────────────────
+function MetasAhorro({ balance, month }) {
+  const [metas, setMetas] = useVaultField('metas', []);
+  const cambiar = (id, c) => setMetas((l) => l.map((x) => (x.id === id ? { ...x, ...c } : x)));
+  const anadir = () => setMetas((l) => [...l, { id: newId(), nombre: 'Fondo de emergencia', objetivo: 3000, ahorrado: 0, meses: [] }]);
+  const quitar = (id) => setMetas((l) => l.filter((x) => x.id !== id));
+  const n = (v) => { const x = parseFloat(String(v).replace(/\./g, '').replace(',', '.')); return Number.isFinite(x) ? x : 0; };
+  return (
+    <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-ink">Metas de ahorro</h3>
+        <button onClick={anadir} className="text-xs text-accent hover:underline">+ Nueva meta</button>
+      </div>
+      {metas.length === 0 && <p className="text-xs text-muted">Ponte una meta (un fondo de emergencia, un viaje…) y suma cada mes lo que ahorras.</p>}
+      {metas.map((x) => {
+        const f = x.objetivo > 0 ? Math.min(1, x.ahorrado / x.objetivo) : 0;
+        const yaSumado = (x.meses ?? []).includes(month);
+        return (
+          <div key={x.id} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input className={`${fieldCls} flex-1 min-w-0`} defaultValue={x.nombre} aria-label="Nombre de la meta" onBlur={(e) => cambiar(x.id, { nombre: e.target.value })} />
+              <button onClick={() => quitar(x.id)} className="text-muted hover:text-neg" aria-label={`Quitar ${x.nombre}`}><lucide.Trash size={14} /></button>
+            </div>
+            <div className="h-3 rounded-full bg-rule-soft overflow-hidden">
+              <div className={`h-full rounded-full ${f >= 1 ? 'bg-pos' : 'bg-accent'}`} style={{ width: `${f * 100}%` }} />
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+              <input className={`${fieldCls} w-24 font-mono`} defaultValue={x.ahorrado} inputMode="decimal" aria-label="Ahorrado" onBlur={(e) => cambiar(x.id, { ahorrado: n(e.target.value) })} />
+              de
+              <input className={`${fieldCls} w-24 font-mono`} defaultValue={x.objetivo} inputMode="decimal" aria-label="Objetivo" onBlur={(e) => cambiar(x.id, { objetivo: n(e.target.value) })} />
+              € · {(f * 100).toFixed(0)} %
+              {balance > 0 && !yaSumado && (
+                <button onClick={() => cambiar(x.id, { ahorrado: x.ahorrado + balance, meses: [...(x.meses ?? []), month] })}
+                  className="ml-auto rounded-lg bg-accent-bg text-accent px-2.5 py-1 font-semibold">Sumar el ahorro del mes (+{eur(balance, 0)})</button>
+              )}
+              {yaSumado && <span className="ml-auto text-pos">Ahorro de este mes sumado ✓</span>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Vista principal ───────────────────────────────────────────────────────
 export function MoneyManager() {
   const [transactions, setTransactions] = useVaultField('transactions', []);
   const [budgets, setBudgets] = useVaultField('budgets', {});
   const [month, setMonth] = useState(() => monthKey(todayISO()));
   const [editingId, setEditingId] = useState(null);
+  const [dia, setDia] = useState(null);
 
   const monthTx = useMemo(
     () => transactions.filter((t) => monthKey(t.date) === month).sort((a, b) => b.date.localeCompare(a.date)),
@@ -222,16 +343,17 @@ export function MoneyManager() {
     setMonth(monthKey(tx.date));
   };
   const remove = (id) => setTransactions((list) => list.filter((t) => t.id !== id));
+  const visibles = dia ? monthTx.filter((t) => t.date === dia) : monthTx;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button onClick={() => setMonth((m) => shiftMonth(m, -1))} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes anterior">
+          <button onClick={() => { setDia(null); setMonth((m) => shiftMonth(m, -1)); }} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes anterior">
             <lucide.ChevronLeft size={16} />
           </button>
           <h2 className="min-w-[10rem] text-center text-base font-semibold text-ink">{monthLabel(month)}</h2>
-          <button onClick={() => setMonth((m) => shiftMonth(m, 1))} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes siguiente">
+          <button onClick={() => { setDia(null); setMonth((m) => shiftMonth(m, 1)); }} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes siguiente">
             <lucide.ChevronRight size={16} />
           </button>
         </div>
@@ -248,14 +370,18 @@ export function MoneyManager() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <div className="xl:col-span-3 rounded-2xl border border-rule bg-card p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-ink">Movimientos</h3>
+        <div className="xl:col-span-3 space-y-6">
+        <CalendarioGastos month={month} monthTx={monthTx} dia={dia} setDia={setDia} />
+        <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-ink">
+            Movimientos{dia && ` del ${new Date(dia + 'T00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}`}
+          </h3>
           <TransactionForm onSave={upsert} />
-          {monthTx.length === 0 ? (
-            <p className="text-xs text-muted py-4 text-center">Todavía no hay movimientos en {monthLabel(month).toLowerCase()}.</p>
+          {visibles.length === 0 ? (
+            <p className="text-xs text-muted py-4 text-center">{dia ? 'Ese día no hay movimientos.' : `Todavía no hay movimientos en ${monthLabel(month).toLowerCase()}.`}</p>
           ) : (
             <ul className="divide-y divide-rule">
-              {monthTx.map((t) =>
+              {visibles.map((t) =>
                 editingId === t.id ? (
                   <li key={t.id} className="py-3">
                     <TransactionForm initial={t} onSave={upsert} onCancel={() => setEditingId(null)} />
@@ -281,7 +407,10 @@ export function MoneyManager() {
             </ul>
           )}
         </div>
+        </div>
         <div className="xl:col-span-2 space-y-6">
+          <AnillosPresupuesto monthTx={monthTx} budgets={budgets} />
+          <MetasAhorro balance={balance} month={month} />
           <CategoryBreakdown monthTx={monthTx} budgets={budgets} setBudgets={setBudgets} />
           <MonthlyTrend transactions={transactions} endMonth={month} />
         </div>
