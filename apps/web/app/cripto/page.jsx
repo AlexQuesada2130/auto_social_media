@@ -85,7 +85,7 @@ export default function Cripto() {
         <div className="rounded-2xl border border-rule bg-card p-6 space-y-3">
           <h2 className="text-base font-semibold text-ink">El robot aún no ha arrancado</h2>
           <p className="text-sm text-muted max-w-2xl">
-            Arrancará solo en la próxima ejecución diaria (entre las 09:00 y las 10:00 en Madrid), o ahora si pulsas el botón. Empieza con 50 € ficticios
+            Arrancará solo en la próxima ejecución diaria (entre las 07:00 y las 08:00 en Madrid), o ahora si pulsas el botón. Empieza con 50 € ficticios
             y suma 10 € cada semana. No toca dinero real ni necesita ninguna cuenta.
           </p>
           <button disabled={ocupado} onClick={() => accion("ejecutar")} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-text disabled:opacity-40">
@@ -145,7 +145,7 @@ export default function Cripto() {
           <div className="rounded-2xl border border-rule bg-card p-5">
             <h3 className="text-sm font-semibold text-ink mb-1">Cuándo actúa</h3>
             <p className="text-xs text-muted leading-relaxed">
-              Una vez al día, entre las 09:00 y las 10:00 (Madrid). Acumulación: compra cada lunes con los 10 € y reequilibra cada 30 días. Tendencia:
+              Una vez al día, entre las 07:00 y las 08:00 (Madrid). Acumulación: compra cada lunes con los 10 € y reequilibra cada 30 días. Tendencia:
               revisa cada día y opera solo cuando una cripto cruza su media de 100 días. Freno: lo vigila cada día. Resumen al móvil
               los lunes. Cesta: BTC, ETH, XRP, SOL, TRX, ZEC, HYPE, DOGE, LINK, ADA, XLM, BCH, NEAR, UNI y LTC.
             </p>

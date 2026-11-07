@@ -5,9 +5,10 @@ import { listarSubs, olvidarSubs } from "@/lib/store";
 import { enviarWeb } from "@/lib/webpush";
 import { ejecutarDia, leerRobot, guardarRobot, resumen, textoSemanal } from "@/lib/robot/servicio";
 
-// Tarea diaria de Vercel Cron (vercel.json, "0 8 * * *" UTC). En el plan Hobby
-// Vercel la lanza en algún momento de esa hora: entre las 09:00 y las 10:00 en
-// Madrid en invierno, no a una hora exacta. La llama con
+// Tarea diaria de Vercel Cron (vercel.json, "0 6 * * *" UTC). En el plan Hobby
+// Vercel la lanza en algún momento de esa hora: entre las 07:00 y las 08:00 en
+// Madrid en invierno (08:00-09:00 en verano), junto a las propuestas de
+// LinkedIn. No a una hora exacta. La llama con
 // "Authorization: Bearer $CRON_SECRET"; sin esa variable no hace nada. En Hobby solo hay una ejecución al día, así que
 // todo lo diario vive aquí y lo semanal se decide por fecha.
 //
