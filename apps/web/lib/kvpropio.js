@@ -41,6 +41,25 @@ export async function leer(clave, porDefecto = null) {
   }
 }
 
+/**
+ * Reserva `clave` durante `segundos` si nadie la tiene (SET NX EX).
+ * Devuelve true si la consigue. Sirve de candado entre peticiones a la vez.
+ */
+export async function reservar(clave, segundos) {
+  exigirKV();
+  if (!hayKV) return true;
+  return (await kv(["SET", clave, "1", "NX", "EX", String(segundos)])) === "OK";
+}
+
+export async function existe(clave) {
+  exigirKV();
+  return hayKV ? (await kv(["EXISTS", clave])) === 1 : false;
+}
+
+export async function soltar(clave) {
+  if (hayKV) await kv(["DEL", clave]);
+}
+
 export async function guardar(clave, valor) {
   exigirKV();
   const texto = JSON.stringify(valor);

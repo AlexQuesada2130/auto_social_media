@@ -14,7 +14,8 @@ const BASE = "https://api.kraken.com/0/public";
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function pedir(ruta) {
-  const r = await fetch(`${BASE}/${ruta}`, { cache: "no-store" });
+  // Sin respuesta en 8 s, se da por fallida: no se consume el tiempo de la función.
+  const r = await fetch(`${BASE}/${ruta}`, { cache: "no-store", signal: AbortSignal.timeout(8000) });
   if (!r.ok) throw new Error(`Kraken ${ruta}: HTTP ${r.status}`);
   const j = await r.json();
   if (j.error?.length) throw new Error(`Kraken ${ruta}: ${j.error.join(", ")}`);
@@ -22,9 +23,11 @@ async function pedir(ruta) {
 }
 
 /** { BTC: { fechas: [...], cierres: [...] }, ... } solo con días ya cerrados. */
-export async function cierresDiarios() {
+export async function cierresDiarios({ presupuestoMs = 40_000 } = {}) {
   const salida = {};
+  const inicio = Date.now();
   for (const [cripto, par] of CESTA) {
+    if (Date.now() - inicio > presupuestoMs) throw new Error("Kraken va lento: descarga de cierres cancelada");
     const res = await pedir(`OHLC?pair=${par}&interval=1440`);
     const velas = res[Object.keys(res).find((k) => k !== "last")];
     // La última vela es el día en curso: aún no ha cerrado.

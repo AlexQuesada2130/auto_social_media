@@ -138,6 +138,7 @@ export function MonitorCripto({ partes }) {
         </span>
         {datos && <span>Actualizado {new Date(datos.actualizado).toLocaleTimeString("es-ES")}</span>}
         {datos && <span>· {enTendencia} de {datos.criptos.length} en tendencia</span>}
+        {datos?.deAyer && <span className="text-warn">· Kraken no responde: tendencias y horquillas con los cierres del {datos.cierresDe}</span>}
         {error && <span className="text-neg">· {error}</span>}
       </div>
 

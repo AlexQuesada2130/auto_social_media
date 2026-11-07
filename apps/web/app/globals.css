@@ -964,3 +964,7 @@ body { padding-bottom: calc(var(--navg-bajo) + 16px); }
 .swipe-pista.descartar { right: 12px; color: var(--neg); }
 .swipe-pista.lista { opacity: 1; background: color-mix(in srgb, currentColor 14%, var(--card)); }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+
+/* La barra flotante reserva su hueco en body; .wrap ya no guarda el de la
+   antigua barra inferior de Social (si no, los dos huecos se sumaban). */
+.wrap { padding-bottom: 0; }

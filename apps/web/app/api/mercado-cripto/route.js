@@ -8,7 +8,7 @@ export const maxDuration = 60; // la primera visita del día descarga los cierre
 export async function GET(req) {
   if (!autorizado(req)) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   try {
-    return NextResponse.json({ actualizado: new Date().toISOString(), criptos: await monitor() });
+    return NextResponse.json({ actualizado: new Date().toISOString(), ...(await monitor()) });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 502 });
   }
