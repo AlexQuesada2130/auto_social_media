@@ -6,6 +6,7 @@ import Estado from "../estado";
 import Resultados from "../resultados";
 import Nav from "../nav";
 import Comentar from "../comentar";
+import SemanaSocial from "../social-semana";
 import { useCandado } from "../candado";
 
 const YO = {
@@ -121,6 +122,7 @@ export default function Pagina() {
       {vista === "comentar" && <Comentar />}
 
       {vista === "cola" && (<>
+      <SemanaSocial borradores={borradores} />
       <div className="tabs" role="tablist">
         {["pendiente", "aprobado", "descartado"].map((f) => (
           <button
@@ -209,6 +211,29 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
   // pueden recorrer. Se ve el titulo y el arranque, y se abre lo que interesa.
   const [desplegado, setDesplegado] = useState(false);
   const estado = borrador.estado || "pendiente";
+  const [arrastre, setArrastre] = useState(null); // { x0, y0, dx, horizontal }
+  const UMBRAL = 110;
+  const dx = arrastre?.horizontal ? arrastre.dx : 0;
+  const deslizar = {
+    onPointerDown: (e) => {
+      if (editando || e.pointerType === "mouse" || e.target.closest("button, a, textarea, input")) return;
+      setArrastre({ x0: e.clientX, y0: e.clientY, dx: 0, horizontal: null });
+    },
+    onPointerMove: (e) => {
+      if (!arrastre) return;
+      const ddx = e.clientX - arrastre.x0, ddy = e.clientY - arrastre.y0;
+      // Se decide la dirección al primer movimiento claro: si es vertical, es scroll.
+      const horizontal = arrastre.horizontal ?? (Math.abs(ddx) > 12 ? Math.abs(ddx) > Math.abs(ddy) : Math.abs(ddy) > 12 ? false : null);
+      if (horizontal === false) return setArrastre(null);
+      setArrastre({ ...arrastre, dx: ddx, horizontal });
+    },
+    onPointerUp: () => {
+      if (dx > UMBRAL && estado !== "aprobado") onEstado("aprobado");
+      else if (dx < -UMBRAL && estado !== "descartado") setPreguntandoMotivo(true);
+      setArrastre(null);
+    },
+    onPointerCancel: () => setArrastre(null),
+  };
   const texto = editando ? textoEditado : borrador.texto || "";
   const [antes, despues] = partirPorPliegue(texto);
   const avisos = revisar(texto);
@@ -224,7 +249,16 @@ function Tarjeta({ borrador, editando, textoEditado, onEditar, onCancelar, onGua
   const urlComponer = URL_COMPOSITOR + encodeURIComponent(texto);
 
   return (
-    <article className={`card is-${estado}`}>
+    <article
+      className={`card is-${estado}${dx ? " arrastrando" : ""}`}
+      {...deslizar}
+      style={dx ? { transform: `translateX(${dx}px) rotate(${dx / 40}deg)` } : undefined}
+    >
+      {dx !== 0 && (
+        <div className={`swipe-pista ${dx > 0 ? "aprobar" : "descartar"}${Math.abs(dx) > UMBRAL ? " lista" : ""}`} aria-hidden="true">
+          {dx > 0 ? "Aprobar" : "Descartar"}
+        </div>
+      )}
       <div className="card-top">
         <span className={`badge ${estado}`}>{ESTADO_NOMBRE[estado] || estado}</span>
         <span className="origin">{borrador.origen || "propuesta"}</span>

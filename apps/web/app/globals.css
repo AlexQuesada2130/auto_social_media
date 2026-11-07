@@ -931,3 +931,36 @@ body { padding-bottom: calc(var(--navg-bajo) + 16px); }
 
 /* Las cabeceras dejan sitio al candado flotante de arriba a la derecha. */
 .masthead { padding-right: calc(52px + env(safe-area-inset-right, 0px)); }
+
+/* ── Social: "Tu semana" (app/social-semana.jsx) ───────────────────────── */
+.semana {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;
+}
+.semana-dato {
+  display: flex; flex-direction: column; gap: 2px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+}
+.semana-etiqueta { font-size: var(--t-micro); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.semana-cifra { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.semana-cifra small { font-size: 0.55em; color: var(--muted); font-weight: 600; }
+.semana-puntos { display: flex; gap: 4px; margin-top: 4px; }
+.semana-puntos i { width: 18px; height: 5px; border-radius: 3px; background: var(--rule); }
+.semana-puntos i.hecho { background: var(--accent); box-shadow: var(--glow); }
+.semana-aviso {
+  grid-column: 1 / -1; margin: 0; padding: 10px 12px; border-radius: 10px;
+  background: var(--warn-bg); color: var(--ink); border: 1px solid var(--warn); font-size: var(--t-menor);
+}
+@media (max-width: 420px) { .semana { grid-template-columns: 1fr 1fr; } .semana-dato:nth-child(3) { grid-column: 1 / -1; } }
+
+/* Deslizar tarjetas: derecha aprueba, izquierda descarta. */
+.card { position: relative; touch-action: pan-y; transition: transform 220ms ease; }
+.card.arrastrando { transition: none; }
+.swipe-pista {
+  position: absolute; top: 12px; z-index: 2; padding: 4px 10px; border-radius: 999px;
+  font-size: var(--t-micro); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  border: 2px solid currentColor; opacity: 0.55;
+}
+.swipe-pista.aprobar { left: 12px; color: var(--ok); }
+.swipe-pista.descartar { right: 12px; color: var(--neg); }
+.swipe-pista.lista { opacity: 1; background: color-mix(in srgb, currentColor 14%, var(--card)); }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
