@@ -116,20 +116,27 @@ function Importar() {
   const [pendiente, setPendiente] = useState(null);
   const [clave, setClave] = useState('');
   const [aviso, setAviso] = useState(null);
+  const [pegando, setPegando] = useState(false);
+  const [texto, setTexto] = useState('');
 
+  // Archivo o texto pegado: el mismo JSON de una copia.
+  const leer = (nombre, bruto) => {
+    setAviso(null);
+    try {
+      const o = JSON.parse(bruto);
+      if (esCopiaCifrada(o)) setPendiente({ nombre, contenido: o, cifrada: true });
+      else if (o?.schema === 1) setPendiente({ nombre, contenido: o, cifrada: false });
+      else throw new Error();
+      setPegando(false);
+      setTexto('');
+    } catch {
+      setAviso({ error: true, texto: 'Eso no es una copia de dinero (tiene que ser el JSON completo, con "schema": 1)' });
+    }
+  };
   const elegir = async (e) => {
     const f = e.target.files?.[0];
     e.target.value = '';
-    if (!f) return;
-    setAviso(null);
-    try {
-      const o = JSON.parse(await f.text());
-      if (esCopiaCifrada(o)) setPendiente({ nombre: f.name, contenido: o, cifrada: true });
-      else if (o?.schema === 1) setPendiente({ nombre: f.name, contenido: o, cifrada: false });
-      else throw new Error();
-    } catch {
-      setAviso({ error: true, texto: 'Ese archivo no es una copia de dinero' });
-    }
+    if (f) leer(f.name, await f.text());
   };
 
   const confirmar = async (e) => {
@@ -154,7 +161,7 @@ function Importar() {
     <Seccion titulo="Importar copia" texto="Añade una copia a tu dinero o sustitúyelo por ella. Queda cifrado con la contraseña de la app.">
       {pendiente ? (
         <form onSubmit={confirmar} className="space-y-2">
-          <div className="text-xs text-ink">Archivo: <span className="font-mono">{pendiente.nombre}</span></div>
+          <div className="text-xs text-ink">Copia: <span className="font-mono">{pendiente.nombre}</span></div>
           {pendiente.cifrada && (
             <input type="password" autoFocus placeholder="Contraseña de esa copia" value={clave} onChange={(e) => setClave(e.target.value)} className={campo} />
           )}
@@ -165,8 +172,19 @@ function Importar() {
             <button type="button" onClick={() => setPendiente(null)} className="text-xs text-muted hover:text-ink px-2">Cancelar</button>
           </div>
         </form>
+      ) : pegando ? (
+        <div className="space-y-2">
+          <textarea autoFocus rows={8} spellCheck={false} placeholder='{ "schema": 1, ... }' value={texto} onChange={(e) => setTexto(e.target.value)} className={`${campo} font-mono text-xs`} aria-label="JSON de la copia" />
+          <div className="flex gap-2">
+            <Boton disabled={!texto.trim()} onClick={() => leer('texto pegado', texto)}>Continuar</Boton>
+            <button type="button" onClick={() => { setPegando(false); setTexto(''); setAviso(null); }} className="text-xs text-muted hover:text-ink px-2">Cancelar</button>
+          </div>
+        </div>
       ) : (
-        <Boton icono={<lucide.Upload size={14} />} onClick={() => fichero.current?.click()}>Elegir archivo…</Boton>
+        <div className="flex flex-wrap gap-2">
+          <Boton icono={<lucide.Upload size={14} />} onClick={() => fichero.current?.click()}>Elegir archivo…</Boton>
+          <Boton onClick={() => setPegando(true)}>Pegar JSON</Boton>
+        </div>
       )}
       <input ref={fichero} type="file" accept="application/json,.json" hidden onChange={elegir} />
       {aviso && <p className={`text-xs mt-2 ${aviso.error ? 'text-neg' : 'text-pos'}`}>{aviso.texto}</p>}
