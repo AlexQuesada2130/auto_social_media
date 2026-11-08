@@ -8,6 +8,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+// Import circular con candado.jsx (que renderiza NavGlobal). Funciona porque
+// useCandado es una declaración de función (se eleva) y solo se usa al
+// renderizar. Si se convierte en `const useCandado = () => ...`, se rompe al
+// arrancar sin avisar: no cambiar esa forma.
 import { useCandado } from "./candado";
 
 const T = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" };
