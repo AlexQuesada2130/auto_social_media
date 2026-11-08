@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { autorizado } from "@/lib/auth";
-import { parchear, borrar } from "@/lib/store";
+import { parchear, borrar, listar } from "@/lib/store";
 import { ESTADOS, LIMITE_CARACTERES } from "@mesa/shared";
 
 export const runtime = "nodejs";
@@ -60,7 +60,16 @@ export async function PATCH(req, { params }) {
     if (Object.keys(limpias).length && !cuerpo.estado) cambios.estado = "publicado";
   }
 
-  if (cuerpo.publicadoEl !== undefined) cambios.publicadoEl = String(cuerpo.publicadoEl).slice(0, 30);
+  // La fecha de publicación se fija UNA vez: al marcarlo publicado (a mano o
+  // al apuntar cifras). Editar después, o actualizar las cifras, no la mueve;
+  // si no, "Tu semana" contaría posts viejos como de esta semana.
+  if (cambios.estado === "publicado" || cuerpo.publicadoEl !== undefined) {
+    const actual = (await listar()).find((b) => b.id === id);
+    if (!actual?.publicadoEl) {
+      const pedida = cuerpo.publicadoEl !== undefined ? new Date(String(cuerpo.publicadoEl).slice(0, 30)) : new Date();
+      cambios.publicadoEl = (Number.isFinite(pedida.getTime()) ? pedida : new Date()).toISOString();
+    }
+  }
 
   // Lo que le pides a Claude que cambie de esta propuesta.
   if (cuerpo.notas !== undefined) cambios.notas = String(cuerpo.notas).slice(0, 2000);
