@@ -16,6 +16,8 @@
 //     vetada 30 días. Es del linaje: los clones la heredan.
 //   - Reserva blindada: lo que va a la reserva es ganancia y no se usa para
 //     rescatar a nadie.
+//   - Staking: las monedas que lo admiten en Kraken generan cada día su
+//     rendimiento en unidades, descontando el 21 % que tributa al cobrarlo.
 //
 // Las señales usan cierres hasta ayer; las operaciones, el precio de ahora.
 // No sabe de dinero real: en papel, las operaciones solo se anotan.
@@ -23,6 +25,9 @@
 export const COSTE = 0.005;      // comisión + deslizamiento por operación
 export const FRENO = 0.25;
 export const DIAS_SIN_RESPUESTA = 30;
+// Rendimientos de staking orientativos (anuales, antes de impuestos).
+export const STAKING = { ETH: 0.03, SOL: 0.06, ADA: 0.025, NEAR: 0.07, TRX: 0.04 };
+const IMPUESTO_STAKING = 0.21;
 
 export const PARTES = {
   nucleo: { nombre: "Acumulación", fraccion: 0.7, reequilibrio: 30, estrategia: "cesta", memoria: 0, blindada: true },
@@ -126,6 +131,14 @@ export function avanzar(estado, { fecha, cierres, precios }) {
     for (const ag of P.agentes) for (const a of activos) {
       if (vivo(a)) ag.ultimo[a] = precios[a];
       else if (ag.uds[a] > 0) vender(ag, a, ag.uds[a], ag.ultimo[a]);
+    }
+
+    // Staking del día: unidades nuevas, netas de impuestos, a su precio de hoy.
+    for (const ag of P.agentes) for (const [a, apr] of Object.entries(STAKING)) {
+      if (!(ag.uds[a] > 0) || !vivo(a)) continue;
+      const nuevas = ag.uds[a] * (apr / 365) * (1 - IMPUESTO_STAKING);
+      ag.uds[a] += nuevas;
+      ag.coste[a] += nuevas * precios[a];
     }
 
     // "Salir del todo": se vende lo que quedaba invertido tras el freno.
