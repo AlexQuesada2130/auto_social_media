@@ -5,13 +5,13 @@ import {
 import { eur, lucide } from './components';
 import { SummaryCard } from './portfolio-tracker';
 import { useVaultField } from './campo';
-import { FINANZAS_INICIALES, resumenFinanzas, revisarReparto, hoyISO } from './saldo';
+import { FINANZAS_INICIALES, resumenFinanzas, revisarReparto, hoyISO, repartoDe, patrimonio as calcularPatrimonio } from './saldo';
 
 export const EXPENSE_CATEGORIES = [
   'Vivienda', 'Supermercado', 'Transporte', 'Restaurantes', 'Ocio', 'Suscripciones',
   'Salud', 'Ropa', 'Educación', 'Regalos', 'Viajes', 'Otros',
 ];
-export const INCOME_CATEGORIES = ['Nómina', 'Freelance', 'Inversiones', 'Ventas', 'Otros'];
+export const INCOME_CATEGORIES = ['Nómina', 'Bizum', 'Freelance', 'Inversiones', 'Ventas', 'Otros'];
 
 const todayISO = () => {
   const d = new Date();
@@ -281,31 +281,67 @@ function CalendarioGastos({ month, monthTx, dia, setDia }) {
 const num = (v) => { let t = String(v).trim().replace(/\s|€/g, ''); if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.'); else if (!/^\d+\.\d{1,2}$/.test(t)) t = t.replace(/\./g, ''); const n = parseFloat(t); return Number.isFinite(n) ? n : 0; };
 const fechaCorta = (iso) => new Date(iso + 'T00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 
-function Configurar({ f, guardar }) {
-  const [saldo, setSaldo] = useState('');
-  const [sueldo, setSueldo] = useState(f.sueldo ? String(f.sueldo) : '');
-  const [dia, setDia] = useState(f.diaCobro ?? 28);
+// Lista editable de { id, nombre, <campo> } (cuentas, cargos pendientes, otros bienes).
+function ListaImportes({ titulo, ayuda, items, setItems, campo, ejemplo }) {
+  const cambiar = (id, c) => setItems(items.map((x) => (x.id === id ? { ...x, ...c } : x)));
   return (
-    <div className="rounded-2xl border border-accent bg-card p-5 space-y-3">
-      <h2 className="text-base font-semibold text-ink">Empecemos por tu dinero de hoy</h2>
-      <p className="text-xs text-muted">Con tu saldo actual la app lleva la cuenta sola: suma lo que entra y resta lo que sale, sin cortes por mes.</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <label className="text-xs text-muted space-y-1"><span>Saldo actual (entre todas tus cuentas)</span>
-          <input className={`${fieldCls} w-full font-mono`} inputMode="decimal" placeholder="0 €" value={saldo} onChange={(e) => setSaldo(e.target.value)} /></label>
-        <label className="text-xs text-muted space-y-1"><span>Sueldo neto por nómina</span>
-          <input className={`${fieldCls} w-full font-mono`} inputMode="decimal" placeholder="0 €" value={sueldo} onChange={(e) => setSueldo(e.target.value)} /></label>
-        <label className="text-xs text-muted space-y-1"><span>Día de cobro</span>
-          <select className={`${fieldCls} w-full`} value={dia} onChange={(e) => setDia(Number(e.target.value))}>
-            {Array.from({ length: 31 }, (_, d) => <option key={d + 1} value={d + 1}>{d + 1}</option>)}
-          </select></label>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-ink">{titulo}</span>
+        <button onClick={() => setItems([...items, { id: newId(), nombre: '', [campo]: 0 }])} className="text-xs text-accent hover:underline">+ Añadir</button>
       </div>
-      <button disabled={!saldo} onClick={() => guardar({ saldoInicial: num(saldo), fechaSaldo: hoyISO(), sueldo: num(sueldo), diaCobro: dia })}
-        className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-text disabled:opacity-40">Empezar</button>
+      {ayuda && <p className="text-[11px] text-muted">{ayuda}</p>}
+      {items.map((x) => (
+        <div key={x.id} className="flex items-center gap-2">
+          <input className={`${fieldCls} flex-1 min-w-0`} placeholder={ejemplo} value={x.nombre} aria-label={`Nombre (${titulo})`} onChange={(e) => cambiar(x.id, { nombre: e.target.value })} />
+          <input className={`${fieldCls} w-28 font-mono text-right`} inputMode="decimal" placeholder="0 €" defaultValue={x[campo] ? String(x[campo]).replace('.', ',') : ''} aria-label={`Importe de ${x.nombre || titulo}`} onBlur={(e) => cambiar(x.id, { [campo]: num(e.target.value) })} />
+          <button onClick={() => setItems(items.filter((y) => y.id !== x.id))} className="text-muted hover:text-neg" aria-label={`Quitar ${x.nombre}`}><lucide.Trash size={14} /></button>
+        </div>
+      ))}
     </div>
   );
 }
 
-function TuDinero({ r, onAjustar }) {
+function Configurar({ f, guardar, onCancelar }) {
+  const [cuentas, setCuentas] = useState(f.cuentas.length ? f.cuentas : [{ id: newId(), nombre: '', saldo: 0 }]);
+  const [pendientes, setPendientes] = useState(f.pendientes);
+  const [otros, setOtros] = useState(f.otros);
+  const [sueldo, setSueldo] = useState(f.sueldo ? String(f.sueldo) : '');
+  const [dia, setDia] = useState(f.diaCobro ?? 28);
+  const listos = cuentas.some((c) => c.nombre && c.saldo);
+  const limpio = (l, campo) => l.filter((x) => x.nombre || x[campo]);
+  const empezar = () => {
+    const hoy = hoyISO();
+    const cs = limpio(cuentas, 'saldo').map((c) => ({ ...c, fecha: hoy }));
+    guardar({ cuentas: cs, saldoInicial: cs.reduce((s, c) => s + c.saldo, 0), fechaSaldo: hoy, pendientes: limpio(pendientes, 'importe'), otros: limpio(otros, 'valor'), sueldo: num(sueldo), diaCobro: dia });
+  };
+  return (
+    <div className="rounded-2xl border border-accent bg-card p-5 space-y-5">
+      <div>
+        <h2 className="text-base font-semibold text-ink">Tu dinero de hoy</h2>
+        <p className="text-xs text-muted mt-1">Con lo que tienes hoy en cada cuenta la app lleva la cuenta sola: suma lo que entra y resta lo que sale, sin cortes por mes.</p>
+      </div>
+      <ListaImportes titulo="Cuentas" items={cuentas} setItems={setCuentas} campo="saldo" ejemplo="Santander" />
+      <ListaImportes titulo="Cargos pendientes" ayuda="Cobros que el banco aún no ha pasado. Se restan de lo libre hasta que se cobren." items={pendientes} setItems={setPendientes} campo="importe" ejemplo="Cargo de la tarjeta" />
+      <ListaImportes titulo="Otros bienes" ayuda="Lo que vale dinero pero no es para gastar: capital social, oro… Cuenta en tu patrimonio, no en lo libre." items={otros} setItems={setOtros} campo="valor" ejemplo="Oro en Revolut" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-rule pt-4">
+        <label className="text-xs text-muted space-y-1"><span>Te entra al mes, más o menos (opcional)</span>
+          <input className={`${fieldCls} w-full font-mono`} inputMode="decimal" placeholder="Lo calculo con tus ingresos" value={sueldo} onChange={(e) => setSueldo(e.target.value)} /></label>
+        <label className="text-xs text-muted space-y-1"><span>Día en que suele llegar la nómina</span>
+          <select className={`${fieldCls} w-full`} value={dia} onChange={(e) => setDia(Number(e.target.value))}>
+            {Array.from({ length: 31 }, (_, d) => <option key={d + 1} value={d + 1}>{d + 1}</option>)}
+          </select></label>
+      </div>
+      <div className="flex items-center gap-3">
+        <button disabled={!listos} onClick={empezar} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-text disabled:opacity-40">Guardar</button>
+        {onCancelar && <button onClick={onCancelar} className="text-xs text-muted hover:text-ink">Cancelar</button>}
+      </div>
+    </div>
+  );
+}
+
+function TuDinero({ r, patrimonio, onAjustar, onPagado }) {
+  const { f } = r;
   return (
     <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
@@ -313,59 +349,113 @@ function TuDinero({ r, onAjustar }) {
           <div className="text-[10px] uppercase tracking-wider text-muted">Libre para gastar</div>
           <div className={`text-4xl font-semibold font-mono leading-tight ${r.libre < 0 ? 'text-neg' : 'text-ink'}`}>{eur(r.libre, 0)}</div>
           <div className="text-sm text-muted mt-1">
-            {eur(r.porDia, 0)} al día durante {r.diasHastaCobro} día{r.diasHastaCobro === 1 ? '' : 's'}, hasta el cobro del {fechaCorta(r.proximoCobro)}
+            {eur(r.porDia, 0)} al día durante {r.diasHastaCobro} día{r.diasHastaCobro === 1 ? '' : 's'}, hasta la nómina del {fechaCorta(r.proximoCobro)}
           </div>
         </div>
-        <button onClick={onAjustar} className="text-xs text-accent hover:underline shrink-0">Ajustar saldo</button>
+        <button onClick={onAjustar} className="text-xs text-accent hover:underline shrink-0">Ajustar</button>
       </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-xl bg-field p-3"><div className="text-[10px] uppercase tracking-wider text-muted">Saldo en cuenta</div><div className="font-mono font-semibold text-ink">{eur(r.saldo, 0)}</div></div>
-        <div className="rounded-xl bg-field p-3"><div className="text-[10px] uppercase tracking-wider text-muted">Reservado (colchón y metas)</div><div className="font-mono font-semibold text-ink">{eur(r.reservado, 0)}</div></div>
+      <div className="grid grid-cols-3 gap-2 text-sm">
+        <div className="rounded-xl bg-field p-3"><div className="text-[10px] uppercase tracking-wider text-muted">En cuentas</div><div className="font-mono font-semibold text-ink">{eur(r.saldo, 0)}</div></div>
+        <div className="rounded-xl bg-field p-3"><div className="text-[10px] uppercase tracking-wider text-muted">Reservado</div><div className="font-mono font-semibold text-ink">{eur(r.reservado, 0)}</div></div>
+        <div className="rounded-xl bg-field p-3"><div className="text-[10px] uppercase tracking-wider text-muted">Pendiente</div><div className={`font-mono font-semibold ${r.pendiente > 0 ? 'text-warn' : 'text-ink'}`}>{r.pendiente > 0 ? '−' : ''}{eur(r.pendiente, 0)}</div></div>
       </div>
+      {f.pendientes.length > 0 && (
+        <ul className="space-y-1.5">
+          {f.pendientes.map((p) => (
+            <li key={p.id} className="flex items-center justify-between gap-2 text-sm">
+              <span className="text-ink">{p.nombre || 'Cargo pendiente'} <span className="font-mono text-muted">{eur(p.importe)}</span></span>
+              <button onClick={() => onPagado(p)} className="text-xs text-accent hover:underline">Ya se ha cobrado</button>
+            </li>
+          ))}
+        </ul>
+      )}
       {r.vasPorEncima && (
         <p className="rounded-xl border border-warn bg-warn-bg p-3 text-sm text-ink">
           Vas por encima de lo previsto: llevas {eur(r.gastadoPeriodo, 0)} gastados desde el {fechaCorta(r.inicioPeriodo)} y a estas alturas tocaban unos {eur(r.previstoHastaHoy, 0)}.
         </p>
       )}
+      <details className="rounded-xl border border-rule">
+        <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm">
+          <span className="text-muted">Patrimonio</span><span className="font-mono font-semibold text-ink">{eur(patrimonio.total, 0)}</span>
+        </summary>
+        <ul className="space-y-1 px-3 pb-3 text-xs">
+          {f.cuentas.map((c) => <li key={c.id} className="flex justify-between"><span className="text-muted">{c.nombre}</span><span className="font-mono text-ink">{eur(c.saldo)}</span></li>)}
+          {r.saldo !== f.cuentas.reduce((s, c) => s + c.saldo, 0) && <li className="flex justify-between"><span className="text-muted">Movimientos desde el {fechaCorta(f.fechaSaldo)}</span><span className="font-mono text-ink">{eur(r.saldo - f.cuentas.reduce((s, c) => s + c.saldo, 0))}</span></li>}
+          {patrimonio.fondos > 0 && <li className="flex justify-between"><span className="text-muted">Fondos (MyInvestor)</span><span className="font-mono text-ink">{eur(patrimonio.fondos)}</span></li>}
+          {f.otros.map((o) => <li key={o.id} className="flex justify-between"><span className="text-muted">{o.nombre}</span><span className="font-mono text-ink">{eur(o.valor)}</span></li>)}
+          {r.pendiente > 0 && <li className="flex justify-between"><span className="text-muted">Cargos pendientes</span><span className="font-mono text-warn">−{eur(r.pendiente)}</span></li>}
+        </ul>
+      </details>
     </div>
   );
 }
 
-function PagatePrimero({ r, guardar, onCobrar, cobradoEsteCiclo }) {
+const TIPOS_INGRESO = [['Nómina', 'Nómina'], ['Bizum', 'Bizum'], ['Otros', 'Otro']];
+
+function ApuntarIngreso({ r, guardar, onIngreso }) {
   const { f } = r;
-  const cambiarApartado = (id, importe) => guardar({ apartados: f.apartados.map((a) => (a.id === id ? { ...a, importe } : a)) });
+  const [importe, setImporte] = useState('');
+  const [tipo, setTipo] = useState('Nómina');
+  const [repartir, setRepartir] = useState(true);
+  const [nota, setNota] = useState('');
+  const [hecho, setHecho] = useState('');
+  const cantidad = num(importe);
+  const reparto = repartoDe(cantidad, r);
+  const cambiarPct = (id, porcentaje) => guardar({ apartados: f.apartados.map((a) => (a.id === id ? { ...a, porcentaje } : a)) });
+  const apuntar = () => {
+    onIngreso({ importe: cantidad, tipo, nota, reparto: repartir ? reparto : null });
+    setHecho(`Apuntados ${eur(cantidad)}${repartir && cantidad - reparto.queda > 0.005 ? `; ${eur(cantidad - reparto.queda)} apartados` : ''}.`);
+    setImporte(''); setNota('');
+  };
   return (
     <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-ink">Págate primero</h3>
-        <label className="text-xs text-muted">Sueldo <input className={`${fieldCls} w-24 font-mono ml-1`} inputMode="decimal" defaultValue={f.sueldo || ''} onBlur={(e) => guardar({ sueldo: num(e.target.value) })} /> €</label>
+      <div>
+        <h3 className="text-sm font-semibold text-ink">Apunta un ingreso</h3>
+        <p className="text-xs text-muted mt-1">Nómina, Bizum o lo que entre: de cada ingreso se aparta primero un porcentaje. Lo que queda es lo que puedes gastar sin pensar.</p>
       </div>
-      <p className="text-xs text-muted">Nada más cobrar se aparta esto. Lo que queda es lo que puedes gastar sin pensar.</p>
+      <div className="flex flex-wrap gap-2">
+        <input className={`${fieldCls} w-32 font-mono`} inputMode="decimal" placeholder="0 €" value={importe} aria-label="Importe del ingreso" onChange={(e) => { setImporte(e.target.value); setHecho(''); }} />
+        <div className="flex rounded-lg border border-rule p-0.5" role="radiogroup" aria-label="Tipo de ingreso">
+          {TIPOS_INGRESO.map(([cat, txt]) => (
+            <button key={cat} role="radio" aria-checked={tipo === cat} onClick={() => setTipo(cat)} className={`rounded-md px-3 py-1.5 text-xs ${tipo === cat ? 'bg-accent text-accent-text font-semibold' : 'text-muted'}`}>{txt}</button>
+          ))}
+        </div>
+        <input className={`${fieldCls} flex-1 min-w-[8rem]`} placeholder="Nota (opcional)" value={nota} onChange={(e) => setNota(e.target.value)} />
+      </div>
       <ul className="space-y-2">
-        {f.apartados.map((a) => (
-          <li key={a.id} className="flex items-center justify-between gap-2 text-sm">
-            <span className="text-ink">{a.nombre} <span className="text-[11px] text-muted">{a.tipo === 'inversion' ? '· sale de la cuenta' : '· se queda reservado'}</span></span>
-            <span className="whitespace-nowrap"><input className={`${fieldCls} w-20 font-mono text-right`} inputMode="decimal" defaultValue={a.importe || ''} placeholder="0" onBlur={(e) => cambiarApartado(a.id, num(e.target.value))} /> €</span>
-          </li>
-        ))}
-        {r.cuotas.filter((c) => c.importe > 0).map((c) => (
-          <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
-            <span className="text-ink">Meta: {c.nombre} <span className="text-[11px] text-muted">· calculado</span></span>
-            <span className="font-mono text-ink">{eur(c.importe, 0)}</span>
+        {f.apartados.map((a) => {
+          const parte = reparto.apartados.find((x) => x.id === a.id)?.importe ?? 0;
+          return (
+            <li key={a.id} className="flex items-center justify-between gap-2 text-sm">
+              <span className="text-ink">{a.nombre} <span className="text-[11px] text-muted">{a.tipo === 'inversion' ? '· sale de la cuenta' : '· se queda reservado'}</span></span>
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                {cantidad > 0 && <span className="font-mono text-xs text-muted">{eur(parte)}</span>}
+                <input className={`${fieldCls} w-16 font-mono text-right`} inputMode="decimal" defaultValue={a.porcentaje || ''} placeholder="0" aria-label={`Porcentaje para ${a.nombre}`} onBlur={(e) => cambiarPct(a.id, num(e.target.value))} /> %
+              </span>
+            </li>
+          );
+        })}
+        {cantidad > 0 && reparto.metas.map((m) => (
+          <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
+            <span className="text-ink">Meta: {m.nombre} <span className="text-[11px] text-muted">· lo que falta este mes</span></span>
+            <span className="font-mono text-xs text-muted">{eur(m.importe)}</span>
           </li>
         ))}
       </ul>
-      <div className="flex items-center justify-between border-t border-rule pt-3 text-sm">
-        <span className="text-muted">Te queda para gastar por nómina</span>
-        <span className={`font-mono font-semibold ${r.paraGastar < 0 ? 'text-neg' : 'text-ink'}`}>{eur(r.paraGastar, 0)}</span>
-      </div>
-      {cobradoEsteCiclo ? (
-        <p className="text-xs text-pos">✓ Nómina de este periodo apuntada y repartida.</p>
-      ) : (
-        <button disabled={!f.sueldo} onClick={onCobrar} className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-text disabled:opacity-40">
-          He cobrado {f.sueldo ? eur(f.sueldo, 0) : ''}: apuntar y repartir
-        </button>
+      <label className="flex items-center gap-2 text-xs text-muted">
+        <input type="checkbox" checked={repartir} onChange={(e) => setRepartir(e.target.checked)} /> Repartir este ingreso
+      </label>
+      {cantidad > 0 && (
+        <div className="flex items-center justify-between border-t border-rule pt-3 text-sm">
+          <span className="text-muted">Te queda libre de este ingreso</span>
+          <span className="font-mono font-semibold text-ink">{eur(repartir ? reparto.queda : cantidad)}</span>
+        </div>
       )}
+      <button disabled={!(cantidad > 0)} onClick={apuntar} className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-text disabled:opacity-40">
+        Apuntar{repartir ? ' y repartir' : ''}
+      </button>
+      {hecho && <p className="text-xs text-pos">✓ {hecho}</p>}
+      <p className="text-[11px] text-muted">Apartas el {r.pctApartado.toLocaleString('es-ES')} % de cada ingreso.{r.ingresoMes > 0 && <> Con unos {eur(r.ingresoMes, 0)} al mes te quedan {eur(r.paraGastar, 0)} para gastar.</>}</p>
     </div>
   );
 }
@@ -383,7 +473,7 @@ function MetasFecha({ r, guardar }) {
         <h3 className="text-sm font-semibold text-ink">Metas con fecha</h3>
         <button onClick={anadir} className="text-xs text-accent hover:underline">+ Nueva meta</button>
       </div>
-      {f.metas.length === 0 && <p className="text-xs text-muted">Navidad, un viaje, el seguro del coche… Pon cuánto y para cuándo, y te digo cuánto apartar en cada nómina.</p>}
+      {f.metas.length === 0 && <p className="text-xs text-muted">Navidad, un viaje, el seguro del coche… Pon cuánto y para cuándo, y te digo cuánto apartar cada mes.</p>}
       {f.metas.map((m) => {
         const pct = m.objetivo > 0 ? Math.min(1, m.ahorrado / m.objetivo) : 0;
         const cuota = r.cuotas.find((c) => c.id === m.id)?.importe ?? 0;
@@ -400,7 +490,7 @@ function MetasFecha({ r, guardar }) {
               <input className={`${fieldCls} w-20 font-mono`} defaultValue={m.objetivo} inputMode="decimal" aria-label="Objetivo" onBlur={(e) => cambiar(m.id, { objetivo: num(e.target.value) })} />
               € para el
               <input type="date" className={fieldCls} defaultValue={m.fecha} aria-label="Fecha" onBlur={(e) => e.target.value && cambiar(m.id, { fecha: e.target.value })} />
-              <span className="ml-auto text-ink">{pct >= 1 ? '✓ Conseguida' : `${eur(cuota, 0)} por nómina`}</span>
+              <span className="ml-auto text-ink">{pct >= 1 ? '✓ Conseguida' : `${eur(cuota, 0)} al mes`}</span>
             </div>
           </div>
         );
@@ -448,20 +538,21 @@ export function MoneyManager() {
   const [transactions, setTransactions] = useVaultField('transactions', []);
   const [budgets, setBudgets] = useVaultField('budgets', {});
   const [finanzas, setFinanzas] = useVaultField('finanzas', FINANZAS_INICIALES);
+  const [planFondos] = useVaultField('planFondos', null);
   const [month, setMonth] = useState(() => monthKey(todayISO()));
   const [editingId, setEditingId] = useState(null);
   const [dia, setDia] = useState(null);
   const [ajustando, setAjustando] = useState(false);
 
-  const datos = { transactions, finanzas };
+  const datos = { transactions, finanzas, planFondos };
   const r = resumenFinanzas(datos);
-  const guardar = (cambios) => setFinanzas((f) => ({ ...FINANZAS_INICIALES, ...f, ...cambios }));
+  const patrimonio = calcularPatrimonio(datos);
+  const guardar = (cambios) => setFinanzas((f) => ({ ...r.f, ...f, ...cambios }));
 
   // Movimientos del periodo actual (desde el último cobro) para presupuestos.
   const periodoTx = useMemo(() => transactions.filter((t) => t.date >= r.inicioPeriodo), [transactions, r.inicioPeriodo]);
   const monthTx = useMemo(() => transactions.filter((t) => monthKey(t.date) === month), [transactions, month]);
   const recientes = useMemo(() => [...(dia ? transactions.filter((t) => t.date === dia) : transactions)].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 40), [transactions, dia]);
-  const cobradoEsteCiclo = (r.f.cobros ?? []).some((c) => c >= r.inicioPeriodo);
 
   const upsert = (tx) => {
     setTransactions((list) => (list.some((t) => t.id === tx.id) ? list.map((t) => (t.id === tx.id ? tx : t)) : [...list, tx]));
@@ -469,28 +560,37 @@ export function MoneyManager() {
   };
   const remove = (id) => setTransactions((list) => list.filter((t) => t.id !== id));
 
-  // "He cobrado": nómina como ingreso, inversión como traspaso que sale de la
-  // cuenta, colchón y metas reservados.
-  const cobrar = () => {
+  // Un ingreso: se apunta y, si se reparte, la inversión sale de la cuenta
+  // como traspaso y el colchón y las metas quedan reservados.
+  const apuntarIngreso = ({ importe, tipo, nota, reparto }) => {
     const hoy = todayISO();
-    const nuevos = [{ id: newId(), type: 'income', amount: r.f.sueldo, category: 'Nómina', date: hoy, note: 'Nómina' }];
-    for (const a of r.f.apartados) if (a.tipo === 'inversion' && a.importe > 0) nuevos.push({ id: newId(), type: 'transfer', amount: a.importe, category: 'Inversión', date: hoy, note: a.nombre });
+    const nuevos = [{ id: newId(), type: 'income', amount: importe, category: tipo, date: hoy, note: nota || tipo }];
+    if (reparto) {
+      for (const a of reparto.apartados) if (a.tipo === 'inversion' && a.importe > 0) nuevos.push({ id: newId(), type: 'transfer', amount: a.importe, category: 'Inversión', date: hoy, note: a.nombre });
+    }
     setTransactions((list) => [...list, ...nuevos]);
-    const colchon = r.f.apartados.find((a) => a.id === 'colchon')?.importe || 0;
+    if (!reparto) return;
+    const colchon = reparto.apartados.find((a) => a.id === 'colchon')?.importe || 0;
+    const metas = Object.fromEntries(reparto.metas.map((m) => [m.id, m.importe]));
     guardar({
-      cobros: [...(r.f.cobros ?? []), hoy],
+      cobros: [...r.f.cobros, { fecha: hoy, importe, tipo, metas }],
       colchon: { ...r.f.colchon, ahorrado: (r.f.colchon.ahorrado || 0) + colchon },
-      metas: r.f.metas.map((m) => ({ ...m, ahorrado: (m.ahorrado || 0) + (r.cuotas.find((c) => c.id === m.id)?.importe || 0) })),
+      metas: r.f.metas.map((m) => ({ ...m, ahorrado: (m.ahorrado || 0) + (metas[m.id] || 0) })),
     });
+  };
+  // Un cargo pendiente que ya ha pasado: pasa a ser un gasto normal.
+  const pagado = (p) => {
+    setTransactions((list) => [...list, { id: newId(), type: 'expense', amount: p.importe, category: 'Otros', date: todayISO(), note: p.nombre || 'Cargo pendiente' }]);
+    guardar({ pendientes: r.f.pendientes.filter((x) => x.id !== p.id) });
   };
 
   if (!r.configurado || ajustando) {
-    return <Configurar f={r.f} guardar={(c) => { guardar(c); setAjustando(false); }} />;
+    return <Configurar f={r.f} guardar={(c) => { guardar(c); setAjustando(false); }} onCancelar={r.configurado ? () => setAjustando(false) : null} />;
   }
 
   return (
     <div className="space-y-6">
-      <TuDinero r={r} onAjustar={() => setAjustando(true)} />
+      <TuDinero r={r} patrimonio={patrimonio} onAjustar={() => setAjustando(true)} onPagado={pagado} />
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         <div className="xl:col-span-3 space-y-6">
@@ -532,7 +632,7 @@ export function MoneyManager() {
           </div>
         </div>
         <div className="xl:col-span-2 space-y-6">
-          <PagatePrimero r={r} guardar={guardar} onCobrar={cobrar} cobradoEsteCiclo={cobradoEsteCiclo} />
+          <ApuntarIngreso r={r} guardar={guardar} onIngreso={apuntarIngreso} />
           <MetasFecha r={r} guardar={guardar} />
           <Colchon r={r} guardar={guardar} />
           <Revision r={r} />

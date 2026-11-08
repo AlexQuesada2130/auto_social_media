@@ -56,7 +56,8 @@ export default function Inicio() {
   if (fondos.dias != null && fondos.dias > 35) pendiente.push({ href: "/inversiones", texto: `Los valores de tus fondos son de hace ${fondos.dias} días.` });
   if (cola && cola.pendientes >= 20) pendiente.push({ href: "/linkedin", texto: `La cola de LinkedIn está llena (${cola.pendientes}): aprueba o descarta para recibir más.` });
   if (cola && cola.aprobados > 0) pendiente.push({ href: "/linkedin", texto: `${cola.aprobados} post${cola.aprobados === 1 ? "" : "s"} aprobado${cola.aprobados === 1 ? "" : "s"} esperando a publicarse.` });
-  if (!fin.configurado) pendiente.push({ href: "/gastos", texto: "Escribe tu saldo actual en Gastos para saber cuánto tienes libre." });
+  if (!fin.configurado) pendiente.push({ href: "/gastos", texto: "Escribe el saldo de tus cuentas en Gastos para saber cuánto tienes libre." });
+  if (fin.pendiente > 0) pendiente.push({ href: "/gastos", texto: `Tienes ${eur(fin.pendiente)} en cargos pendientes. Márcalos cuando el banco los pase.` });
 
   return (
     <main className="wrap">

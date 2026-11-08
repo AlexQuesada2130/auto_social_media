@@ -103,7 +103,10 @@ function Anillo({ fondos, total, sumaObj }) {
 }
 
 export function PlanFondos() {
-  const [plan, setPlan] = useVaultField('planFondos', PLAN_INICIAL);
+  const [guardado, setPlan] = useVaultField('planFondos', PLAN_INICIAL);
+  // Una copia importada puede traer solo parte del plan: el resto, por defecto.
+  const plan = { ...PLAN_INICIAL, ...guardado };
+  plan.fondos = plan.fondos.map((f) => ({ nombre: 'Fondo', valor: 0, invertido: 0, objetivo: 0, ...PLAN_INICIAL.fondos.find((x) => x.id === f.id), ...f }));
   const [aviso, setAviso] = useState('');
   const [copiado, setCopiado] = useState(false);
   const fondos = plan.fondos;
@@ -233,6 +236,7 @@ export function PlanFondos() {
                     <th className="py-2 pr-3 font-medium">Fondo</th>
                     <th className="py-2 pr-3 font-medium">Valor hoy</th>
                     <th className="py-2 pr-3 font-medium">Invertido</th>
+                    <th className="py-2 pr-3 font-medium">Participaciones</th>
                     <th className="py-2 pr-3 font-medium">Objetivo</th>
                     <th></th>
                   </tr>
@@ -248,6 +252,10 @@ export function PlanFondos() {
                       </td>
                       <td className="py-2 pr-3"><input className={`${campo} w-24 font-mono`} inputMode="decimal" aria-label={`Valor de ${f.nombre}`} defaultValue={f.valor || ''} placeholder="0 €" onBlur={(e) => num(e.target.value) !== f.valor && cambiarImporte(i, { valor: num(e.target.value) })} /></td>
                       <td className="py-2 pr-3"><input className={`${campo} w-24 font-mono`} inputMode="decimal" aria-label={`Invertido en ${f.nombre}`} defaultValue={f.invertido || ''} placeholder="0 €" onBlur={(e) => num(e.target.value) !== (f.invertido || 0) && cambiarImporte(i, { invertido: num(e.target.value) })} /></td>
+                      <td className="py-2 pr-3">
+                        <input className={`${campo} w-24 font-mono`} inputMode="decimal" aria-label={`Participaciones de ${f.nombre}`} defaultValue={f.participaciones ? String(f.participaciones).replace('.', ',') : ''} placeholder="—" onBlur={(e) => cambiarFondo(i, { participaciones: num(e.target.value) || null })} />
+                        {f.participaciones > 0 && f.valor > 0 && <div className="text-[10px] text-muted mt-0.5">{(f.valor / f.participaciones).toLocaleString('es-ES', { maximumFractionDigits: 4 })} € cada una</div>}
+                      </td>
                       <td className="py-2 pr-3 whitespace-nowrap"><input className={`${campo} w-14 font-mono`} inputMode="decimal" aria-label={`Objetivo de ${f.nombre}`} defaultValue={f.objetivo} onBlur={(e) => cambiarFondo(i, { objetivo: num(e.target.value) })} /> <span className="text-muted">%</span></td>
                       <td className="py-2">{fondos.length > 1 && <button onClick={() => quitar(i)} className="text-faint hover:text-neg" aria-label={`Quitar ${f.nombre}`}><lucide.Trash size={14} /></button>}</td>
                     </tr>

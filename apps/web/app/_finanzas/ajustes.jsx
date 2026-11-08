@@ -18,13 +18,13 @@ function Seccion({ titulo, texto, children, peligro }) {
   );
 }
 
-function Boton({ onClick, icono, children, tono = 'neutro', disabled, type = 'button' }) {
+function Boton({ onClick, icono, children, tono = 'neutro', disabled, type = 'button', value }) {
   const tonos = {
     neutro: 'border-rule text-ink hover:border-accent hover:text-ink',
     peligro: 'border-neg text-neg hover:bg-neg-bg',
   };
   return (
-    <button type={type} onClick={onClick} disabled={disabled}
+    <button type={type} value={value} onClick={onClick} disabled={disabled}
       className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition disabled:opacity-40 ${tonos[tono]}`}>
       {icono}{children}
     </button>
@@ -92,6 +92,24 @@ function Exportar({ datos }) {
   );
 }
 
+// Añade una copia a lo que ya hay sin borrar nada. Las listas de objetos con
+// id se unen por id (gana la copia); los objetos se mezclan campo a campo; el
+// resto lo pone la copia si trae valor.
+export function fusionar(actual, nuevo) {
+  if (Array.isArray(actual) && Array.isArray(nuevo)) {
+    if (![...actual, ...nuevo].every((x) => x && typeof x === 'object' && x.id != null)) return nuevo.length ? nuevo : actual;
+    const porId = new Map(actual.map((x) => [x.id, x]));
+    for (const x of nuevo) porId.set(x.id, porId.has(x.id) ? fusionar(porId.get(x.id), x) : x);
+    return [...porId.values()];
+  }
+  if (actual && nuevo && typeof actual === 'object' && typeof nuevo === 'object' && !Array.isArray(actual) && !Array.isArray(nuevo)) {
+    const r = { ...actual };
+    for (const [k, v] of Object.entries(nuevo)) r[k] = k in actual ? fusionar(actual[k], v) : v;
+    return r;
+  }
+  return nuevo ?? actual;
+}
+
 function Importar() {
   const { actualizar } = useCandado();
   const fichero = useRef(null);
@@ -116,28 +134,34 @@ function Importar() {
 
   const confirmar = async (e) => {
     e.preventDefault();
+    const modo = e.nativeEvent.submitter?.value ?? 'anadir';
     try {
-      const sig = pendiente.cifrada ? await abrirCopia(pendiente.contenido, clave) : { ...datosVacios(), ...pendiente.contenido };
-      actualizar(() => sig);
+      const copia = pendiente.cifrada ? await abrirCopia(pendiente.contenido, clave) : { ...datosVacios(), ...pendiente.contenido };
+      if (modo === 'reemplazar') actualizar(() => copia);
+      else {
+        const { schema, createdAt, updatedAt, settings, ...resto } = copia;
+        actualizar((d) => fusionar(d, resto));
+      }
       setPendiente(null);
       setClave('');
-      setAviso({ texto: `Importado: ${sig.transactions?.length ?? 0} movimientos.` });
+      setAviso({ texto: modo === 'reemplazar' ? `Reemplazado: ${copia.transactions?.length ?? 0} movimientos.` : 'Añadido a tus datos. No se ha borrado nada.' });
     } catch (err) {
       setAviso({ error: true, texto: err.message });
     }
   };
 
   return (
-    <Seccion titulo="Importar copia" texto="Sustituye el dinero de este dispositivo por el de una copia. Queda cifrado con la contraseña de la app.">
+    <Seccion titulo="Importar copia" texto="Añade una copia a tu dinero o sustitúyelo por ella. Queda cifrado con la contraseña de la app.">
       {pendiente ? (
         <form onSubmit={confirmar} className="space-y-2">
           <div className="text-xs text-ink">Archivo: <span className="font-mono">{pendiente.nombre}</span></div>
           {pendiente.cifrada && (
             <input type="password" autoFocus placeholder="Contraseña de esa copia" value={clave} onChange={(e) => setClave(e.target.value)} className={campo} />
           )}
-          <p className="text-[11px] text-warn">Esto reemplaza lo que tienes ahora.</p>
-          <div className="flex gap-2">
-            <Boton type="submit" tono="peligro" disabled={pendiente.cifrada && !clave}>Reemplazar mis datos</Boton>
+          <p className="text-[11px] text-muted">«Añadir» junta la copia con lo que tienes (si algo existe en los dos, gana la copia). «Reemplazar» <span className="text-warn">borra lo actual</span>.</p>
+          <div className="flex flex-wrap gap-2">
+            <button type="submit" value="anadir" disabled={pendiente.cifrada && !clave} className="rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-accent-text disabled:opacity-40">Añadir a mis datos</button>
+            <Boton type="submit" value="reemplazar" tono="peligro" disabled={pendiente.cifrada && !clave}>Reemplazar</Boton>
             <button type="button" onClick={() => setPendiente(null)} className="text-xs text-muted hover:text-ink px-2">Cancelar</button>
           </div>
         </form>
