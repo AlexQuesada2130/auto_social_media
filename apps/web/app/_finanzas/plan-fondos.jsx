@@ -147,147 +147,130 @@ export function PlanFondos() {
   }
 
   const ganancia = total - invertido;
+  const [editando, setEditando] = useState(total <= 0);
+  const repartoTexto = fondos.map((f, i) => ({ f, i, importe: reparto[i] || 0 })).filter((x) => x.importe >= 0.5);
+
   return (
     <div className="space-y-5">
-      {/* Resumen */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-rule bg-card p-5">
-          <div className="text-[10px] uppercase tracking-wider text-muted">Valor de la cartera</div>
-          <div className="text-3xl font-semibold text-ink font-mono mt-2">{total > 0 ? eur(total, 0) : '—'}</div>
-          {diasDesde !== null && <div className={`text-xs mt-1 ${diasDesde > 35 ? 'text-warn' : 'text-muted'}`}>actualizado hace {diasDesde === 0 ? 'menos de un día' : `${diasDesde} día${diasDesde === 1 ? '' : 's'}`}</div>}
-        </div>
-        <div className="rounded-2xl border border-rule bg-card p-5">
-          <div className="text-[10px] uppercase tracking-wider text-muted">Invertido</div>
-          <div className="text-3xl font-semibold text-ink font-mono mt-2">{invertido > 0 ? eur(invertido, 0) : '—'}</div>
-          <div className="text-xs text-muted mt-1">lo que MyInvestor llama «importe invertido»</div>
-        </div>
-        <div className="rounded-2xl border border-rule bg-card p-5">
-          <div className="text-[10px] uppercase tracking-wider text-muted">Ganancia</div>
-          <div className={`text-3xl font-semibold font-mono mt-2 ${invertido > 0 ? (ganancia >= 0 ? 'text-pos' : 'text-neg') : 'text-ink'}`}>
-            {invertido > 0 ? `${ganancia >= 0 ? '+' : ''}${eur(ganancia, 0)}` : '—'}
+      {/* Resumen visual */}
+      <div className="rounded-2xl border border-rule bg-card p-5">
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex-1 min-w-[12rem] space-y-1">
+            <div className="text-[10px] uppercase tracking-wider text-muted">Tu cartera</div>
+            <div className="text-4xl font-semibold text-ink font-mono leading-tight">{total > 0 ? eur(total, 0) : '—'}</div>
+            {invertido > 0 && (
+              <div className={`text-sm font-mono ${ganancia >= 0 ? 'text-pos' : 'text-neg'}`}>
+                {ganancia >= 0 ? '+' : ''}{eur(ganancia, 0)} ({pct(ganancia / invertido)}) sobre {eur(invertido, 0)} invertidos
+              </div>
+            )}
+            {diasDesde !== null && <div className={`text-xs ${diasDesde > 35 ? 'text-warn' : 'text-muted'}`}>valores de hace {diasDesde === 0 ? 'menos de un día' : `${diasDesde} día${diasDesde === 1 ? '' : 's'}`}</div>}
           </div>
-          <div className="text-xs text-muted mt-1">{invertido > 0 ? pct(ganancia / invertido) : 'escribe lo invertido de cada fondo'}</div>
+          <Anillo fondos={fondos} total={total} sumaObj={sumaObj} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
-        {/* Reparto y estado */}
-        <div className="xl:col-span-2 rounded-2xl border border-rule bg-card p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-ink">Reparto</h2>
-          <Anillo fondos={fondos} total={total} sumaObj={sumaObj} />
-          <div className={`rounded-xl border p-3 text-sm ${mover ? 'border-warn bg-warn-bg' : 'border-rule bg-field'}`}>
-            {total <= 0 ? (
-              <p className="text-muted">Escribe el valor de tus fondos para ver qué hacer este mes.</p>
-            ) : mover ? (
-              <div className="space-y-2">
-                <p className="text-ink"><b>Toca reequilibrar.</b> Aunque repartas la aportación, un fondo seguiría desviado {mover.desvio.toFixed(1)} puntos.
-                  Traspasa <b>{eur(mover.importe)}</b> de <b>{fondos[mover.de].nombre}</b> a <b>{fondos[mover.a].nombre}</b>. Entre fondos no tributa (no vale para ETF).</p>
-                <button onClick={copiar} className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-text">
-                  {copiado ? 'Copiado ✓' : 'Copiar la orden de traspaso'}
-                </button>
-              </div>
-            ) : (
-              <p className="text-ink"><b>Todo en orden.</b> Reparte la aportación como en la tabla y no hace falta mover nada más.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Evolución */}
-        <div className="xl:col-span-3 rounded-2xl border border-rule bg-card p-5">
-          <h2 className="text-sm font-semibold text-ink mb-3">Evolución</h2>
-          {historial.length < 2 ? (
-            <p className="text-xs text-muted">Cada vez que actualices los valores se guarda una foto del día. Con dos fotos aparece aquí la evolución del valor frente a lo invertido.</p>
+      {/* La acción del mes */}
+      {total > 0 && (
+        <div className={`rounded-2xl border p-5 space-y-3 ${mover ? 'border-warn bg-warn-bg' : 'border-rule bg-card'}`}>
+          <div className="text-[10px] uppercase tracking-wider text-muted">Este mes</div>
+          {mover ? (
+            <>
+              <p className="text-ink text-base"><b>Traspasa {eur(mover.importe)}</b> de {fondos[mover.de].nombre} a {fondos[mover.a].nombre}.</p>
+              <p className="text-xs text-muted">Aunque repartas la aportación, un fondo seguiría desviado {mover.desvio.toFixed(1)} puntos. Entre fondos de inversión no tributa (no vale para ETF).</p>
+              <button onClick={copiar} className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-text">{copiado ? 'Copiado ✓' : 'Copiar la orden de traspaso'}</button>
+            </>
           ) : (
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={historial}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="fecha" fontSize={11} tickLine={false} axisLine={false} minTickGap={30} />
-                  <YAxis fontSize={11} tickLine={false} axisLine={false} width={56} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-                  <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--rule)', borderRadius: 8, fontSize: 12 }} formatter={(v) => eur(v, 0)} />
-                  <Legend iconType="plainline" wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="valor" name="Valor" stroke="var(--serie-1)" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="stepAfter" dataKey="invertido" name="Invertido" stroke="var(--muted)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <>
+              <p className="text-ink text-base">Aporta tus {eur(plan.aportacion, 0)} así:</p>
+              <div className="flex flex-wrap gap-2">
+                {repartoTexto.map(({ f, i, importe }) => (
+                  <span key={f.id} className="inline-flex items-center gap-2 rounded-full border border-rule bg-field px-3 py-1.5 text-sm">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: color(i) }} /><span className="text-ink">{f.nombre}</span><b className="font-mono text-ink">{eur(importe, 0)}</b>
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-muted">Tu reparto está en orden: no hace falta mover nada más.</p>
+            </>
           )}
         </div>
-      </div>
+      )}
 
-      {/* Tabla de fondos */}
-      <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-ink">Tus fondos</h2>
-          <p className="text-xs text-muted mt-1">Copia de MyInvestor el valor y el importe invertido de cada fondo. Se guarda cifrado en este dispositivo.</p>
+      {/* Evolución */}
+      {historial.length >= 2 && (
+        <div className="rounded-2xl border border-rule bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink mb-3">Evolución</h2>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={historial}>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="fecha" fontSize={11} tickLine={false} axisLine={false} minTickGap={30} />
+                <YAxis fontSize={11} tickLine={false} axisLine={false} width={56} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+                <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--rule)', borderRadius: 8, fontSize: 12 }} formatter={(v) => eur(v, 0)} />
+                <Legend iconType="plainline" wrapperStyle={{ fontSize: 11 }} />
+                <Line type="monotone" dataKey="valor" name="Valor" stroke="var(--serie-1)" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="invertido" name="Invertido" stroke="var(--muted)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-muted text-left">
-                <th className="py-2 pr-3 font-medium">Fondo</th>
-                <th className="py-2 pr-3 font-medium">Valor hoy</th>
-                <th className="py-2 pr-3 font-medium">Invertido</th>
-                <th className="py-2 pr-3 font-medium">Objetivo</th>
-                <th className="py-2 pr-3 font-medium">Próxima aportación</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-rule">
-              {fondos.map((f, i) => (
-                <tr key={f.id}>
-                  <td className="py-2 pr-3">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: color(i) }} />
-                      <input className={`${campo} w-52`} value={f.nombre} aria-label="Nombre del fondo" onChange={(e) => cambiarFondo(i, { nombre: e.target.value })} />
-                    </div>
-                  </td>
-                  <td className="py-2 pr-3">
-                    <input className={`${campo} w-28 font-mono`} inputMode="decimal" aria-label={`Valor de ${f.nombre}`} defaultValue={f.valor || ''} placeholder="0 €"
-                      onBlur={(e) => num(e.target.value) !== f.valor && cambiarImporte(i, { valor: num(e.target.value) })} />
-                  </td>
-                  <td className="py-2 pr-3">
-                    <input className={`${campo} w-28 font-mono`} inputMode="decimal" aria-label={`Invertido en ${f.nombre}`} defaultValue={f.invertido || ''} placeholder="0 €"
-                      onBlur={(e) => num(e.target.value) !== (f.invertido || 0) && cambiarImporte(i, { invertido: num(e.target.value) })} />
-                  </td>
-                  <td className="py-2 pr-3 whitespace-nowrap">
-                    <input className={`${campo} w-16 font-mono`} inputMode="decimal" aria-label={`Objetivo de ${f.nombre}`} defaultValue={f.objetivo}
-                      onBlur={(e) => cambiarFondo(i, { objetivo: num(e.target.value) })} /> <span className="text-muted">%</span>
-                  </td>
-                  <td className="py-2 pr-3 font-mono text-ink">{eur(reparto[i] || 0)}</td>
-                  <td className="py-2">
-                    {fondos.length > 1 && (
-                      <button onClick={() => quitar(i)} className="text-faint hover:text-neg" aria-label={`Quitar ${f.nombre}`}><lucide.Trash size={14} /></button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <button onClick={anadir} className="text-xs text-accent hover:underline">+ Añadir fondo</button>
-        {Math.round(sumaObj) !== 100 && <p className="text-xs text-warn">Los objetivos suman {sumaObj.toFixed(0)} %; se reparten en proporción.</p>}
+      )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-rule">
-          <label className="text-xs text-muted space-y-1">
-            <span>Aportación mensual</span>
-            <div><input className={`${campo} w-28 font-mono`} inputMode="decimal" defaultValue={plan.aportacion} onBlur={(e) => cambiar({ aportacion: num(e.target.value) })} /> €</div>
-          </label>
-          <label className="text-xs text-muted space-y-1">
-            <span>Avisarme si un fondo se desvía más de</span>
-            <div><input className={`${campo} w-16 font-mono`} inputMode="decimal" defaultValue={plan.umbral} onBlur={(e) => cambiar({ umbral: Math.max(1, num(e.target.value)) })} /> puntos</div>
-          </label>
-          <label className="text-xs text-muted space-y-1">
-            <span>Recordatorio al móvil el día</span>
-            <div>
-              <select className={campo} value={plan.dia} onChange={(e) => cambiar({ dia: Number(e.target.value) })}>
-                <option value={0}>Sin recordatorio</option>
-                {Array.from({ length: 28 }, (_, d) => <option key={d + 1} value={d + 1}>{d + 1}</option>)}
-              </select> de cada mes
+      {/* Actualizar valores (plegado) */}
+      <div className="rounded-2xl border border-rule bg-card">
+        <button onClick={() => setEditando((x) => !x)} className="flex w-full items-center justify-between p-5 text-left" aria-expanded={editando}>
+          <span>
+            <span className="block text-sm font-semibold text-ink">Actualizar valores</span>
+            <span className="block text-xs text-muted">Copia de MyInvestor el valor y lo invertido de cada fondo · aportación {eur(plan.aportacion, 0)}/mes · recordatorio día {plan.dia || '—'}</span>
+          </span>
+          <span className="text-muted text-lg" aria-hidden="true">{editando ? '▲' : '▼'}</span>
+        </button>
+        {editando && (
+          <div className="px-5 pb-5 space-y-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wider text-muted text-left">
+                    <th className="py-2 pr-3 font-medium">Fondo</th>
+                    <th className="py-2 pr-3 font-medium">Valor hoy</th>
+                    <th className="py-2 pr-3 font-medium">Invertido</th>
+                    <th className="py-2 pr-3 font-medium">Objetivo</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-rule">
+                  {fondos.map((f, i) => (
+                    <tr key={f.id}>
+                      <td className="py-2 pr-3">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: color(i) }} />
+                          <input className={`${campo} w-44`} value={f.nombre} aria-label="Nombre del fondo" onChange={(e) => cambiarFondo(i, { nombre: e.target.value })} />
+                        </div>
+                      </td>
+                      <td className="py-2 pr-3"><input className={`${campo} w-24 font-mono`} inputMode="decimal" aria-label={`Valor de ${f.nombre}`} defaultValue={f.valor || ''} placeholder="0 €" onBlur={(e) => num(e.target.value) !== f.valor && cambiarImporte(i, { valor: num(e.target.value) })} /></td>
+                      <td className="py-2 pr-3"><input className={`${campo} w-24 font-mono`} inputMode="decimal" aria-label={`Invertido en ${f.nombre}`} defaultValue={f.invertido || ''} placeholder="0 €" onBlur={(e) => num(e.target.value) !== (f.invertido || 0) && cambiarImporte(i, { invertido: num(e.target.value) })} /></td>
+                      <td className="py-2 pr-3 whitespace-nowrap"><input className={`${campo} w-14 font-mono`} inputMode="decimal" aria-label={`Objetivo de ${f.nombre}`} defaultValue={f.objetivo} onBlur={(e) => cambiarFondo(i, { objetivo: num(e.target.value) })} /> <span className="text-muted">%</span></td>
+                      <td className="py-2">{fondos.length > 1 && <button onClick={() => quitar(i)} className="text-faint hover:text-neg" aria-label={`Quitar ${f.nombre}`}><lucide.Trash size={14} /></button>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </label>
-        </div>
-        {aviso && <p className="text-xs text-neg">{aviso}</p>}
+            <button onClick={anadir} className="text-xs text-accent hover:underline">+ Añadir fondo</button>
+            {Math.round(sumaObj) !== 100 && <p className="text-xs text-warn">Los objetivos suman {sumaObj.toFixed(0)} %; se reparten en proporción.</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-rule">
+              <label className="text-xs text-muted space-y-1"><span>Aportación mensual</span>
+                <div><input className={`${campo} w-24 font-mono`} inputMode="decimal" defaultValue={plan.aportacion} onBlur={(e) => cambiar({ aportacion: num(e.target.value) })} /> €</div></label>
+              <label className="text-xs text-muted space-y-1"><span>Avisarme si un fondo se desvía más de</span>
+                <div><input className={`${campo} w-14 font-mono`} inputMode="decimal" defaultValue={plan.umbral} onBlur={(e) => cambiar({ umbral: Math.max(1, num(e.target.value)) })} /> puntos</div></label>
+              <label className="text-xs text-muted space-y-1"><span>Recordatorio al móvil el día</span>
+                <div><select className={campo} value={plan.dia} onChange={(e) => cambiar({ dia: Number(e.target.value) })}>
+                  <option value={0}>Sin recordatorio</option>
+                  {Array.from({ length: 28 }, (_, d) => <option key={d + 1} value={d + 1}>{d + 1}</option>)}
+                </select></div></label>
+            </div>
+            {aviso && <p className="text-xs text-neg">{aviso}</p>}
+          </div>
+        )}
       </div>
     </div>
   );

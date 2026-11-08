@@ -44,20 +44,12 @@ export default function Inversiones() {
   return (
     <Marco titulo="Cartera de inversiones" subtitulo="Tus fondos de MyInvestor: reparto, aportaciones y traspasos."
       pestanas={PESTANAS} activa={pestana} onPestana={setPestana}>
-      {pestana === "plan" && (
-        <>
-          <PlanFondos />
-          <ConMercado>
-            {({ funds, positions, setPositions }) => (
-              <MyPortfolio funds={funds} positions={{ ...POSICIONES_INICIALES, ...positions }} setPositions={setPositions} extraCatalog={EXTRA_FUNDS} />
-            )}
-          </ConMercado>
-        </>
-      )}
+      {pestana === "plan" && <PlanFondos />}
       {pestana === "analisis" && (
         <ConMercado>
-          {({ funds }) => (
+          {({ funds, positions, setPositions }) => (
             <>
+              <MyPortfolio funds={funds} positions={{ ...POSICIONES_INICIALES, ...positions }} setPositions={setPositions} extraCatalog={EXTRA_FUNDS} />
               <FundsExplorer funds={funds} />
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                 {funds.map((f) => <CoreFundCard key={f.id} fund={f} />)}
