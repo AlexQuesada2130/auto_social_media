@@ -5,6 +5,7 @@ import {
 import { eur, lucide } from './components';
 import { SummaryCard } from './portfolio-tracker';
 import { useVaultField } from './campo';
+import { FINANZAS_INICIALES, resumenFinanzas, revisarReparto, hoyISO } from './saldo';
 
 export const EXPENSE_CATEGORIES = [
   'Vivienda', 'Supermercado', 'Transporte', 'Restaurantes', 'Ocio', 'Suscripciones',
@@ -276,42 +277,130 @@ function CalendarioGastos({ month, monthTx, dia, setDia }) {
   );
 }
 
-// ── Metas de ahorro ───────────────────────────────────────────────────────
-function MetasAhorro({ balance, month }) {
-  const [metas, setMetas] = useVaultField('metas', []);
-  const cambiar = (id, c) => setMetas((l) => l.map((x) => (x.id === id ? { ...x, ...c } : x)));
-  const anadir = () => setMetas((l) => [...l, { id: newId(), nombre: 'Fondo de emergencia', objetivo: 3000, ahorrado: 0, meses: [] }]);
-  const quitar = (id) => setMetas((l) => l.filter((x) => x.id !== id));
-  const n = (v) => { const x = parseFloat(String(v).replace(/\./g, '').replace(',', '.')); return Number.isFinite(x) ? x : 0; };
+// ── Gastos con saldo continuo y "págate primero" (modelo en ./saldo.js) ───
+const num = (v) => { let t = String(v).trim().replace(/\s|€/g, ''); if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.'); else if (!/^\d+\.\d{1,2}$/.test(t)) t = t.replace(/\./g, ''); const n = parseFloat(t); return Number.isFinite(n) ? n : 0; };
+const fechaCorta = (iso) => new Date(iso + 'T00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+
+function Configurar({ f, guardar }) {
+  const [saldo, setSaldo] = useState('');
+  const [sueldo, setSueldo] = useState(f.sueldo ? String(f.sueldo) : '');
+  const [dia, setDia] = useState(f.diaCobro ?? 28);
+  return (
+    <div className="rounded-2xl border border-accent bg-card p-5 space-y-3">
+      <h2 className="text-base font-semibold text-ink">Empecemos por tu dinero de hoy</h2>
+      <p className="text-xs text-muted">Con tu saldo actual la app lleva la cuenta sola: suma lo que entra y resta lo que sale, sin cortes por mes.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <label className="text-xs text-muted space-y-1"><span>Saldo actual (entre todas tus cuentas)</span>
+          <input className={`${fieldCls} w-full font-mono`} inputMode="decimal" placeholder="0 €" value={saldo} onChange={(e) => setSaldo(e.target.value)} /></label>
+        <label className="text-xs text-muted space-y-1"><span>Sueldo neto por nómina</span>
+          <input className={`${fieldCls} w-full font-mono`} inputMode="decimal" placeholder="0 €" value={sueldo} onChange={(e) => setSueldo(e.target.value)} /></label>
+        <label className="text-xs text-muted space-y-1"><span>Día de cobro</span>
+          <select className={`${fieldCls} w-full`} value={dia} onChange={(e) => setDia(Number(e.target.value))}>
+            {Array.from({ length: 31 }, (_, d) => <option key={d + 1} value={d + 1}>{d + 1}</option>)}
+          </select></label>
+      </div>
+      <button disabled={!saldo} onClick={() => guardar({ saldoInicial: num(saldo), fechaSaldo: hoyISO(), sueldo: num(sueldo), diaCobro: dia })}
+        className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-text disabled:opacity-40">Empezar</button>
+    </div>
+  );
+}
+
+function TuDinero({ r, onAjustar }) {
+  return (
+    <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted">Libre para gastar</div>
+          <div className={`text-4xl font-semibold font-mono leading-tight ${r.libre < 0 ? 'text-neg' : 'text-ink'}`}>{eur(r.libre, 0)}</div>
+          <div className="text-sm text-muted mt-1">
+            {eur(r.porDia, 0)} al día durante {r.diasHastaCobro} día{r.diasHastaCobro === 1 ? '' : 's'}, hasta el cobro del {fechaCorta(r.proximoCobro)}
+          </div>
+        </div>
+        <button onClick={onAjustar} className="text-xs text-accent hover:underline shrink-0">Ajustar saldo</button>
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="rounded-xl bg-field p-3"><div className="text-[10px] uppercase tracking-wider text-muted">Saldo en cuenta</div><div className="font-mono font-semibold text-ink">{eur(r.saldo, 0)}</div></div>
+        <div className="rounded-xl bg-field p-3"><div className="text-[10px] uppercase tracking-wider text-muted">Reservado (colchón y metas)</div><div className="font-mono font-semibold text-ink">{eur(r.reservado, 0)}</div></div>
+      </div>
+      {r.vasPorEncima && (
+        <p className="rounded-xl border border-warn bg-warn-bg p-3 text-sm text-ink">
+          Vas por encima de lo previsto: llevas {eur(r.gastadoPeriodo, 0)} gastados desde el {fechaCorta(r.inicioPeriodo)} y a estas alturas tocaban unos {eur(r.previstoHastaHoy, 0)}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PagatePrimero({ r, guardar, onCobrar, cobradoEsteCiclo }) {
+  const { f } = r;
+  const cambiarApartado = (id, importe) => guardar({ apartados: f.apartados.map((a) => (a.id === id ? { ...a, importe } : a)) });
+  return (
+    <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-ink">Págate primero</h3>
+        <label className="text-xs text-muted">Sueldo <input className={`${fieldCls} w-24 font-mono ml-1`} inputMode="decimal" defaultValue={f.sueldo || ''} onBlur={(e) => guardar({ sueldo: num(e.target.value) })} /> €</label>
+      </div>
+      <p className="text-xs text-muted">Nada más cobrar se aparta esto. Lo que queda es lo que puedes gastar sin pensar.</p>
+      <ul className="space-y-2">
+        {f.apartados.map((a) => (
+          <li key={a.id} className="flex items-center justify-between gap-2 text-sm">
+            <span className="text-ink">{a.nombre} <span className="text-[11px] text-muted">{a.tipo === 'inversion' ? '· sale de la cuenta' : '· se queda reservado'}</span></span>
+            <span className="whitespace-nowrap"><input className={`${fieldCls} w-20 font-mono text-right`} inputMode="decimal" defaultValue={a.importe || ''} placeholder="0" onBlur={(e) => cambiarApartado(a.id, num(e.target.value))} /> €</span>
+          </li>
+        ))}
+        {r.cuotas.filter((c) => c.importe > 0).map((c) => (
+          <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
+            <span className="text-ink">Meta: {c.nombre} <span className="text-[11px] text-muted">· calculado</span></span>
+            <span className="font-mono text-ink">{eur(c.importe, 0)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="flex items-center justify-between border-t border-rule pt-3 text-sm">
+        <span className="text-muted">Te queda para gastar por nómina</span>
+        <span className={`font-mono font-semibold ${r.paraGastar < 0 ? 'text-neg' : 'text-ink'}`}>{eur(r.paraGastar, 0)}</span>
+      </div>
+      {cobradoEsteCiclo ? (
+        <p className="text-xs text-pos">✓ Nómina de este periodo apuntada y repartida.</p>
+      ) : (
+        <button disabled={!f.sueldo} onClick={onCobrar} className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-text disabled:opacity-40">
+          He cobrado {f.sueldo ? eur(f.sueldo, 0) : ''}: apuntar y repartir
+        </button>
+      )}
+    </div>
+  );
+}
+
+function MetasFecha({ r, guardar }) {
+  const { f } = r;
+  const cambiar = (id, c) => guardar({ metas: f.metas.map((m) => (m.id === id ? { ...m, ...c } : m)) });
+  const anadir = () => {
+    const y = new Date().getFullYear();
+    guardar({ metas: [...f.metas, { id: newId(), nombre: 'Regalos de Navidad', objetivo: 300, ahorrado: 0, fecha: `${y}-12-20` }] });
+  };
   return (
     <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-ink">Metas de ahorro</h3>
+        <h3 className="text-sm font-semibold text-ink">Metas con fecha</h3>
         <button onClick={anadir} className="text-xs text-accent hover:underline">+ Nueva meta</button>
       </div>
-      {metas.length === 0 && <p className="text-xs text-muted">Ponte una meta (un fondo de emergencia, un viaje…) y suma cada mes lo que ahorras.</p>}
-      {metas.map((x) => {
-        const f = x.objetivo > 0 ? Math.min(1, x.ahorrado / x.objetivo) : 0;
-        const yaSumado = (x.meses ?? []).includes(month);
+      {f.metas.length === 0 && <p className="text-xs text-muted">Navidad, un viaje, el seguro del coche… Pon cuánto y para cuándo, y te digo cuánto apartar en cada nómina.</p>}
+      {f.metas.map((m) => {
+        const pct = m.objetivo > 0 ? Math.min(1, m.ahorrado / m.objetivo) : 0;
+        const cuota = r.cuotas.find((c) => c.id === m.id)?.importe ?? 0;
         return (
-          <div key={x.id} className="space-y-2">
+          <div key={m.id} className="space-y-2">
             <div className="flex items-center gap-2">
-              <input className={`${fieldCls} flex-1 min-w-0`} defaultValue={x.nombre} aria-label="Nombre de la meta" onBlur={(e) => cambiar(x.id, { nombre: e.target.value })} />
-              <button onClick={() => quitar(x.id)} className="text-muted hover:text-neg" aria-label={`Quitar ${x.nombre}`}><lucide.Trash size={14} /></button>
+              <input className={`${fieldCls} flex-1 min-w-0`} defaultValue={m.nombre} aria-label="Nombre de la meta" onBlur={(e) => cambiar(m.id, { nombre: e.target.value })} />
+              <button onClick={() => guardar({ metas: f.metas.filter((x) => x.id !== m.id) })} className="text-muted hover:text-neg" aria-label={`Quitar ${m.nombre}`}><lucide.Trash size={14} /></button>
             </div>
-            <div className="h-3 rounded-full bg-rule-soft overflow-hidden">
-              <div className={`h-full rounded-full ${f >= 1 ? 'bg-pos' : 'bg-accent'}`} style={{ width: `${f * 100}%` }} />
-            </div>
+            <div className="h-3 rounded-full bg-rule-soft overflow-hidden"><div className={`h-full rounded-full ${pct >= 1 ? 'bg-pos' : 'bg-accent'}`} style={{ width: `${pct * 100}%` }} /></div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <input className={`${fieldCls} w-24 font-mono`} defaultValue={x.ahorrado} inputMode="decimal" aria-label="Ahorrado" onBlur={(e) => cambiar(x.id, { ahorrado: n(e.target.value) })} />
+              <input className={`${fieldCls} w-20 font-mono`} defaultValue={m.ahorrado} inputMode="decimal" aria-label="Ahorrado" onBlur={(e) => cambiar(m.id, { ahorrado: num(e.target.value) })} />
               de
-              <input className={`${fieldCls} w-24 font-mono`} defaultValue={x.objetivo} inputMode="decimal" aria-label="Objetivo" onBlur={(e) => cambiar(x.id, { objetivo: n(e.target.value) })} />
-              € · {(f * 100).toFixed(0)} %
-              {balance > 0 && !yaSumado && (
-                <button onClick={() => cambiar(x.id, { ahorrado: x.ahorrado + balance, meses: [...(x.meses ?? []), month] })}
-                  className="ml-auto rounded-lg bg-accent-bg text-accent px-2.5 py-1 font-semibold">Sumar el ahorro del mes (+{eur(balance, 0)})</button>
-              )}
-              {yaSumado && <span className="ml-auto text-pos">Ahorro de este mes sumado ✓</span>}
+              <input className={`${fieldCls} w-20 font-mono`} defaultValue={m.objetivo} inputMode="decimal" aria-label="Objetivo" onBlur={(e) => cambiar(m.id, { objetivo: num(e.target.value) })} />
+              € para el
+              <input type="date" className={fieldCls} defaultValue={m.fecha} aria-label="Fecha" onBlur={(e) => e.target.value && cambiar(m.id, { fecha: e.target.value })} />
+              <span className="ml-auto text-ink">{pct >= 1 ? '✓ Conseguida' : `${eur(cuota, 0)} por nómina`}</span>
             </div>
           </div>
         );
@@ -320,99 +409,136 @@ function MetasAhorro({ balance, month }) {
   );
 }
 
+function Colchon({ r, guardar }) {
+  const { f } = r;
+  const pct = r.objetivoColchon > 0 ? Math.min(1, (f.colchon.ahorrado || 0) / r.objetivoColchon) : 0;
+  return (
+    <div className="rounded-2xl border border-rule bg-card p-5 space-y-3">
+      <h3 className="text-sm font-semibold text-ink">Colchón de emergencia</h3>
+      {r.gastoMes > 0 ? (
+        <>
+          <p className="text-xs text-muted">Gastas unos {eur(r.gastoMes, 0)} al mes (últimos 90 días). Tienes cubiertos <b className="text-ink">{r.mesesCubiertos.toFixed(1)} meses</b>.</p>
+          <div className="h-3 rounded-full bg-rule-soft overflow-hidden"><div className={`h-full rounded-full ${pct >= 1 ? 'bg-pos' : 'bg-accent'}`} style={{ width: `${pct * 100}%` }} /></div>
+        </>
+      ) : <p className="text-xs text-muted">Cuando apuntes gastos calcularé cuántos meses te cubre.</p>}
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+        Ahorrado <input className={`${fieldCls} w-24 font-mono`} defaultValue={f.colchon.ahorrado} inputMode="decimal" onBlur={(e) => guardar({ colchon: { ...f.colchon, ahorrado: num(e.target.value) } })} /> € · objetivo
+        <select className={fieldCls} value={f.colchon.meses} onChange={(e) => guardar({ colchon: { ...f.colchon, meses: Number(e.target.value) } })}>
+          {[3, 4, 6, 9, 12].map((n) => <option key={n} value={n}>{n} meses</option>)}
+        </select>
+        {r.gastoMes > 0 && <span className="ml-auto text-ink">{eur(r.objetivoColchon, 0)}</span>}
+      </div>
+    </div>
+  );
+}
+
+function Revision({ r }) {
+  const tonos = { pos: 'border-pos bg-pos-bg', warn: 'border-warn bg-warn-bg', neg: 'border-neg bg-neg-bg', info: 'border-rule bg-field' };
+  return (
+    <div className="rounded-2xl border border-rule bg-card p-5 space-y-3">
+      <h3 className="text-sm font-semibold text-ink">Revisión del reparto</h3>
+      {revisarReparto(r).map((p, i) => <p key={i} className={`rounded-xl border p-3 text-sm text-ink ${tonos[p.tono]}`}>{p.texto}</p>)}
+      <p className="text-[11px] text-muted">Cálculos con tus números, no asesoramiento financiero.</p>
+    </div>
+  );
+}
+
 // ── Vista principal ───────────────────────────────────────────────────────
 export function MoneyManager() {
   const [transactions, setTransactions] = useVaultField('transactions', []);
   const [budgets, setBudgets] = useVaultField('budgets', {});
+  const [finanzas, setFinanzas] = useVaultField('finanzas', FINANZAS_INICIALES);
   const [month, setMonth] = useState(() => monthKey(todayISO()));
   const [editingId, setEditingId] = useState(null);
   const [dia, setDia] = useState(null);
+  const [ajustando, setAjustando] = useState(false);
 
-  const monthTx = useMemo(
-    () => transactions.filter((t) => monthKey(t.date) === month).sort((a, b) => b.date.localeCompare(a.date)),
-    [transactions, month]
-  );
-  const income = sumBy(monthTx, 'income');
-  const expense = sumBy(monthTx, 'expense');
-  const balance = income - expense;
-  const savingsRate = income > 0 ? (balance / income) * 100 : 0;
+  const datos = { transactions, finanzas };
+  const r = resumenFinanzas(datos);
+  const guardar = (cambios) => setFinanzas((f) => ({ ...FINANZAS_INICIALES, ...f, ...cambios }));
+
+  // Movimientos del periodo actual (desde el último cobro) para presupuestos.
+  const periodoTx = useMemo(() => transactions.filter((t) => t.date >= r.inicioPeriodo), [transactions, r.inicioPeriodo]);
+  const monthTx = useMemo(() => transactions.filter((t) => monthKey(t.date) === month), [transactions, month]);
+  const recientes = useMemo(() => [...(dia ? transactions.filter((t) => t.date === dia) : transactions)].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 40), [transactions, dia]);
+  const cobradoEsteCiclo = (r.f.cobros ?? []).some((c) => c >= r.inicioPeriodo);
 
   const upsert = (tx) => {
     setTransactions((list) => (list.some((t) => t.id === tx.id) ? list.map((t) => (t.id === tx.id ? tx : t)) : [...list, tx]));
     setEditingId(null);
-    setMonth(monthKey(tx.date));
   };
   const remove = (id) => setTransactions((list) => list.filter((t) => t.id !== id));
-  const visibles = dia ? monthTx.filter((t) => t.date === dia) : monthTx;
+
+  // "He cobrado": nómina como ingreso, inversión como traspaso que sale de la
+  // cuenta, colchón y metas reservados.
+  const cobrar = () => {
+    const hoy = todayISO();
+    const nuevos = [{ id: newId(), type: 'income', amount: r.f.sueldo, category: 'Nómina', date: hoy, note: 'Nómina' }];
+    for (const a of r.f.apartados) if (a.tipo === 'inversion' && a.importe > 0) nuevos.push({ id: newId(), type: 'transfer', amount: a.importe, category: 'Inversión', date: hoy, note: a.nombre });
+    setTransactions((list) => [...list, ...nuevos]);
+    const colchon = r.f.apartados.find((a) => a.id === 'colchon')?.importe || 0;
+    guardar({
+      cobros: [...(r.f.cobros ?? []), hoy],
+      colchon: { ...r.f.colchon, ahorrado: (r.f.colchon.ahorrado || 0) + colchon },
+      metas: r.f.metas.map((m) => ({ ...m, ahorrado: (m.ahorrado || 0) + (r.cuotas.find((c) => c.id === m.id)?.importe || 0) })),
+    });
+  };
+
+  if (!r.configurado || ajustando) {
+    return <Configurar f={r.f} guardar={(c) => { guardar(c); setAjustando(false); }} />;
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button onClick={() => { setDia(null); setMonth((m) => shiftMonth(m, -1)); }} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes anterior">
-            <lucide.ChevronLeft size={16} />
-          </button>
-          <h2 className="min-w-[10rem] text-center text-base font-semibold text-ink">{monthLabel(month)}</h2>
-          <button onClick={() => { setDia(null); setMonth((m) => shiftMonth(m, 1)); }} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes siguiente">
-            <lucide.ChevronRight size={16} />
-          </button>
-        </div>
-        {month !== monthKey(todayISO()) && (
-          <button onClick={() => setMonth(monthKey(todayISO()))} className="text-xs text-muted hover:text-ink">Volver a este mes</button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard label="Ingresos" value={eur(income, 0)} tone="positive" icon={<lucide.TrendingUp size={16} />} />
-        <SummaryCard label="Gastos" value={eur(expense, 0)} tone="negative" icon={<lucide.TrendingDown size={16} />} />
-        <SummaryCard label="Balance" value={`${balance >= 0 ? '+' : ''}${eur(balance, 0)}`} tone={balance >= 0 ? 'accent' : 'negative'} icon={<lucide.Wallet size={16} />} />
-        <SummaryCard label="Tasa de ahorro" value={`${savingsRate.toFixed(0)}%`} sub="Balance / ingresos" tone="neutral" icon={<lucide.ShieldCheck size={16} />} />
-      </div>
+      <TuDinero r={r} onAjustar={() => setAjustando(true)} />
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         <div className="xl:col-span-3 space-y-6">
-        <CalendarioGastos month={month} monthTx={monthTx} dia={dia} setDia={setDia} />
-        <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-ink">
-            Movimientos{dia && ` del ${new Date(dia + 'T00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}`}
-          </h3>
-          <TransactionForm onSave={upsert} />
-          {visibles.length === 0 ? (
-            <p className="text-xs text-muted py-4 text-center">{dia ? 'Ese día no hay movimientos.' : `Todavía no hay movimientos en ${monthLabel(month).toLowerCase()}.`}</p>
-          ) : (
-            <ul className="divide-y divide-rule">
-              {visibles.map((t) =>
-                editingId === t.id ? (
-                  <li key={t.id} className="py-3">
-                    <TransactionForm initial={t} onSave={upsert} onCancel={() => setEditingId(null)} />
-                  </li>
-                ) : (
-                  <li key={t.id} className="group flex items-center gap-3 py-2.5">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${t.type === 'income' ? 'bg-pos' : 'bg-neg'}`} />
-                    <button onClick={() => setEditingId(t.id)} className="flex-1 min-w-0 text-left">
-                      <div className="text-sm text-ink truncate">{t.note || t.category}</div>
-                      <div className="text-[11px] text-muted">
-                        {t.category} · {new Date(t.date + 'T00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                      </div>
-                    </button>
-                    <span className={`font-mono text-sm ${t.type === 'income' ? 'text-pos' : 'text-ink'}`}>
-                      {t.type === 'income' ? '+' : '−'}{eur(t.amount)}
-                    </span>
-                    <button onClick={() => remove(t.id)} className="text-muted opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-neg transition" aria-label="Borrar movimiento">
-                      <lucide.Trash size={14} />
-                    </button>
-                  </li>
-                )
-              )}
-            </ul>
-          )}
-        </div>
+          <div className="rounded-2xl border border-rule bg-card p-5 space-y-4">
+            <h3 className="text-sm font-semibold text-ink">
+              Movimientos{dia && ` del ${fechaCorta(dia)}`}
+              {dia && <button onClick={() => setDia(null)} className="ml-2 text-xs text-accent hover:underline">ver todos</button>}
+            </h3>
+            <TransactionForm onSave={upsert} />
+            {recientes.length === 0 ? (
+              <p className="text-xs text-muted py-4 text-center">{dia ? 'Ese día no hay movimientos.' : 'Todavía no hay movimientos.'}</p>
+            ) : (
+              <ul className="divide-y divide-rule">
+                {recientes.map((t) =>
+                  editingId === t.id ? (
+                    <li key={t.id} className="py-3"><TransactionForm initial={t} onSave={upsert} onCancel={() => setEditingId(null)} /></li>
+                  ) : (
+                    <li key={t.id} className="group flex items-center gap-3 py-2.5">
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${t.type === 'income' ? 'bg-pos' : t.type === 'transfer' ? 'bg-accent' : 'bg-neg'}`} />
+                      <button onClick={() => t.type !== 'transfer' && setEditingId(t.id)} className="flex-1 min-w-0 text-left">
+                        <div className="text-sm text-ink truncate">{t.note || t.category}</div>
+                        <div className="text-[11px] text-muted">{t.type === 'transfer' ? 'Traspaso a inversión' : t.category} · {new Date(t.date + 'T00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</div>
+                      </button>
+                      <span className={`font-mono text-sm ${t.type === 'income' ? 'text-pos' : 'text-ink'}`}>{t.type === 'income' ? '+' : '−'}{eur(t.amount)}</span>
+                      <button onClick={() => remove(t.id)} className="text-muted opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-neg transition" aria-label="Borrar movimiento"><lucide.Trash size={14} /></button>
+                    </li>
+                  )
+                )}
+              </ul>
+            )}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <button onClick={() => { setDia(null); setMonth((m) => shiftMonth(m, -1)); }} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes anterior"><lucide.ChevronLeft size={16} /></button>
+              <span className="text-sm text-ink">{monthLabel(month)}</span>
+              <button onClick={() => { setDia(null); setMonth((m) => shiftMonth(m, 1)); }} className="rounded-lg border border-rule p-1.5 text-muted hover:text-ink" aria-label="Mes siguiente"><lucide.ChevronRight size={16} /></button>
+            </div>
+            <CalendarioGastos month={month} monthTx={monthTx} dia={dia} setDia={setDia} />
+          </div>
         </div>
         <div className="xl:col-span-2 space-y-6">
-          <AnillosPresupuesto monthTx={monthTx} budgets={budgets} />
-          <MetasAhorro balance={balance} month={month} />
-          <CategoryBreakdown monthTx={monthTx} budgets={budgets} setBudgets={setBudgets} />
-          <MonthlyTrend transactions={transactions} endMonth={month} />
+          <PagatePrimero r={r} guardar={guardar} onCobrar={cobrar} cobradoEsteCiclo={cobradoEsteCiclo} />
+          <MetasFecha r={r} guardar={guardar} />
+          <Colchon r={r} guardar={guardar} />
+          <Revision r={r} />
+          <AnillosPresupuesto monthTx={periodoTx} budgets={budgets} />
+          <CategoryBreakdown monthTx={periodoTx} budgets={budgets} setBudgets={setBudgets} />
+          <MonthlyTrend transactions={transactions} endMonth={monthKey(todayISO())} />
         </div>
       </div>
     </div>
