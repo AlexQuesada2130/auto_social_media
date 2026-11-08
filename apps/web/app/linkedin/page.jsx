@@ -7,6 +7,7 @@ import Resultados from "../resultados";
 import Nav from "../nav";
 import Comentar from "../comentar";
 import SemanaSocial from "../social-semana";
+import { BotonCandado } from "../nav-global";
 import { useCandado } from "../candado";
 
 const YO = {
@@ -111,6 +112,7 @@ export default function Pagina() {
           <span><b>{nPend}</b> pendientes</span>
           <span><b>{nApro}</b> aprobados</span>
         </div>
+        <BotonCandado />
       </header>
 
       <Nav activa={vista} onCambiar={setVista} pendientes={nPend} />

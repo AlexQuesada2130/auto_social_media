@@ -884,18 +884,17 @@ body { padding-bottom: calc(var(--navg-bajo) + 16px); }
 }
 /* La burbuja del activo: se desliza a la columna activa. */
 .navg-burbuja {
-  position: absolute; top: -18px; width: 52px; height: 52px; border-radius: 50%;
+  position: absolute; top: -18px; width: 52px; height: 52px; border-radius: 50%; z-index: 1;
   left: calc((100% / var(--n)) * (var(--activa) + 0.5) - 26px);
-  background: var(--cristal);
-  -webkit-backdrop-filter: blur(18px) saturate(1.5);
-  backdrop-filter: blur(18px) saturate(1.5);
+  /* Opaca: si fuera de cristal se vería a través la línea del borde de la barra. */
+  background: var(--card);
   border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent), 0 8px 24px color-mix(in srgb, var(--accent) 45%, transparent);
   transition: left 380ms cubic-bezier(0.34, 1.4, 0.64, 1);
   pointer-events: none;
 }
 .navg-enlace {
-  position: relative; z-index: 1;
+  position: relative; z-index: 2;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px;
   padding-bottom: 9px; min-height: 64px;
   color: var(--muted); text-decoration: none; font-size: var(--t-micro); font-weight: 600;
@@ -907,15 +906,11 @@ body { padding-bottom: calc(var(--navg-bajo) + 16px); }
 .navg-enlace.viva .navg-texto { color: var(--accent); }
 .navg-enlace:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; border-radius: 16px; }
 
-.candado-flotante {
-  position: fixed; z-index: 40;
-  top: calc(10px + env(safe-area-inset-top, 0px));
-  right: calc(12px + env(safe-area-inset-right, 0px));
-  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
-  color: var(--muted); background: var(--cristal); border: 1px solid var(--cristal-borde);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+.candado-boton {
+  flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  color: var(--muted); background: var(--card); border: 1px solid var(--rule);
 }
-.candado-flotante:hover { color: var(--ink); }
+.candado-boton:hover { color: var(--ink); }
 
 @media (max-width: 360px) { .navg-texto { display: none; } .navg-enlace { justify-content: center; padding-bottom: 0; } }
 @media (prefers-reduced-motion: reduce) { .navg-burbuja, .navg-icono { transition: none; } }
@@ -929,8 +924,10 @@ body { padding-bottom: calc(var(--navg-bajo) + 16px); }
 }
 .nav .nav-boton { min-height: 48px; padding: 6px 4px; }
 
-/* Las cabeceras dejan sitio al candado flotante de arriba a la derecha. */
-.masthead { padding-right: calc(52px + env(safe-area-inset-right, 0px)); }
+/* Al tirar de la pantalla más allá del borde no se ve otro fondo. */
+html { background: var(--paper); overscroll-behavior-y: none; }
+body { overscroll-behavior-y: none; }
+.masthead .candado-boton { align-self: center; }
 
 /* ── Social: "Tu semana" (app/social-semana.jsx) ───────────────────────── */
 .semana {
@@ -968,3 +965,21 @@ body { padding-bottom: calc(var(--navg-bajo) + 16px); }
 /* La barra flotante reserva su hueco en body; .wrap ya no guarda el de la
    antigua barra inferior de Social (si no, los dos huecos se sumaban). */
 .wrap { padding-bottom: 0; }
+
+/* ── Inicio compacto ───────────────────────────────────────────────────── */
+.inicio-rejilla { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 22px; }
+.inicio-tarjeta {
+  display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--rule); color: var(--ink); text-decoration: none; min-width: 0;
+}
+.inicio-tarjeta:hover { border-color: var(--accent); }
+.inicio-cifra { font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inicio-atencion h2 { font-size: var(--t-menor); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 8px; }
+.inicio-atencion ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.inicio-atencion a {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--rule); border-left: 3px solid var(--accent); color: var(--ink); text-decoration: none; font-size: var(--t-menor);
+}
+.inicio-atencion a span { color: var(--muted); font-size: 1.2em; }
+.inicio-ok { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-weight: 600; }
+.masthead .tally .candado-boton { text-decoration: none; }

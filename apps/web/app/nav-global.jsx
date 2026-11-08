@@ -1,12 +1,14 @@
 "use client";
 
 // Barra global flotante, abajo, al alcance del pulgar. Cristal translúcido y
-// el icono activo elevado en una burbuja con brillo, que se desliza al cambiar
-// de sección. Respeta las zonas seguras del iPhone (barra de inicio abajo,
-// muescas a los lados en horizontal). El candado va aparte, arriba a la derecha.
+// el icono activo elevado en una burbuja opaca con brillo, que se desliza al
+// cambiar de sección. Respeta las zonas seguras del iPhone (barra de inicio
+// abajo, muescas a los lados en horizontal). El candado va en la cabecera de
+// cada pantalla (BotonCandado), alineado con el título.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCandado } from "./candado";
 
 const T = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" };
 const SECCIONES = [
@@ -17,14 +19,20 @@ const SECCIONES = [
   { href: "/gastos", nombre: "Gastos", icono: <path d="M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6 M17 13h.01" {...T} /> },
 ];
 
-export default function NavGlobal({ onBloquear }) {
+export function BotonCandado() {
+  const { cerrar } = useCandado();
+  return (
+    <button className="candado-boton" onClick={cerrar} aria-label="Bloquear la app" title="Bloquear">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" {...T} /><path d="M8 11V8a4 4 0 0 1 8 0v3" {...T} /></svg>
+    </button>
+  );
+}
+
+export default function NavGlobal() {
   const ruta = usePathname();
   const activa = Math.max(0, SECCIONES.findIndex((s) => (s.href === "/" ? ruta === "/" : ruta.startsWith(s.href))));
   return (
     <>
-      <button className="candado-flotante" onClick={onBloquear} aria-label="Bloquear la app" title="Bloquear">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" {...T} /><path d="M8 11V8a4 4 0 0 1 8 0v3" {...T} /></svg>
-      </button>
       <nav className="navg" aria-label="Secciones de la app" style={{ "--activa": activa, "--n": SECCIONES.length }}>
         <span className="navg-burbuja" aria-hidden="true" />
         {SECCIONES.map((s, i) => (

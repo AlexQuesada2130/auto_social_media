@@ -192,7 +192,7 @@ export default function Candado({ children }) {
       />
     );
   }
-  return <Contexto.Provider value={valor}><NavGlobal onBloquear={cerrar} />{children}</Contexto.Provider>;
+  return <Contexto.Provider value={valor}><NavGlobal />{children}</Contexto.Provider>;
 }
 
 function Puerta({ onEntrar, onCara }) {

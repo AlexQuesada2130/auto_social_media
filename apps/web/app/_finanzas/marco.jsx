@@ -7,20 +7,24 @@
 import { useState } from "react";
 import { lucide } from "./components";
 import { AjustesDinero } from "./ajustes";
+import { BotonCandado } from "../nav-global";
 import "./finanzas.css";
 
 export function Marco({ titulo, subtitulo, pestanas, activa, onPestana, children }) {
   const [ajustes, setAjustes] = useState(false);
   return (
     <div id="finanzas">
-      <div className="mx-auto max-w-7xl pl-4 lg:pl-10 pt-5 pb-2 flex flex-wrap items-end justify-between gap-3" style={{ paddingRight: "calc(64px + env(safe-area-inset-right, 0px))" }}>
-        <div>
+      <div className="mx-auto max-w-7xl px-4 lg:px-10 pt-5 pb-2 space-y-2">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-xl font-semibold text-ink">{titulo}</h1>
-          {subtitulo && <p className="text-xs text-muted mt-1">{subtitulo}</p>}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setAjustes(true)} className="inline-flex h-10 items-center gap-1.5 rounded-full border border-rule px-3 text-xs text-muted hover:text-ink" title="Exportar, importar y vaciar">
+              <lucide.Settings size={14} /> Datos
+            </button>
+            <BotonCandado />
+          </div>
         </div>
-        <button onClick={() => setAjustes(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-rule px-3 py-1.5 text-xs text-muted hover:text-ink" title="Exportar, importar y vaciar">
-          <lucide.Settings size={14} /> Datos y copias
-        </button>
+        {subtitulo && <p className="text-xs text-muted">{subtitulo}</p>}
       </div>
       {pestanas && (
         <div className="mx-auto max-w-7xl px-4 lg:px-10">
