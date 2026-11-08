@@ -11,7 +11,7 @@ import { useCandado } from "../candado";
 const eur = (x) => x.toLocaleString("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: x >= 100 ? 0 : x >= 1 ? 2 : 4 });
 const pct = (x) => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(1)} %`;
 
-function Chispa({ valores }) {
+export function Chispa({ valores }) {
   if (!valores?.length) return null;
   const min = Math.min(...valores), max = Math.max(...valores);
   const W = 120, H = 34, pad = 3;
@@ -25,7 +25,7 @@ function Chispa({ valores }) {
   );
 }
 
-function Horquilla({ h, precio }) {
+export function Horquilla({ h, precio }) {
   if (!h) return <p className="text-[11px] text-muted">Aún sin historial suficiente.</p>;
   // Escala común: del 5 % al 95 %, con un pequeño margen.
   const lo = Math.min(h.p5, precio) * 0.97, hi = Math.max(h.p95, precio) * 1.03;
